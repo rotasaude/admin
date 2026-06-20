@@ -80,8 +80,13 @@ async function jsonFetch<T>(input: string, init?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    let body: unknown = null;
-    try { body = await res.json(); } catch { body = await res.text(); }
+    // fetch consome o stream em qualquer leitura; tenta JSON via text() para
+    // não cair em "body stream already read" quando o response não é JSON.
+    const text = await res.text().catch(() => "");
+    let body: unknown = text;
+    if (text) {
+      try { body = JSON.parse(text); } catch { /* deixa string */ }
+    }
     throw new ApiError(res.status, body, `${res.status} on ${input}`);
   }
 
