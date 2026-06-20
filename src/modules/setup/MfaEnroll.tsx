@@ -6,6 +6,7 @@
 import { useState, type FormEvent } from "react";
 import { mfaEnroll, mfaConfirm, ApiError, type MfaEnrollPayload } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
+import { QrCode } from "../../components/QrCode";
 
 type Phase = "idle" | "enrolled" | "confirmed";
 
@@ -68,12 +69,17 @@ export function MfaEnroll({ onDone }: { onDone?: () => void }) {
       {phase === "enrolled" && payload && (
         <>
           <Section title="1. Escaneie no Authy / Google Auth">
-            <code style={{ display: "block", padding: "10px 12px", borderRadius: 8, background: "var(--bg)", border: "1px solid var(--rule2)", fontSize: 11, wordBreak: "break-all" }}>
-              {payload.otpauth_uri}
-            </code>
-            <p style={{ fontSize: 11, color: "var(--ink3)", margin: 0 }}>
-              Cole essa URI no autenticador ou gere um QR code dela.
-            </p>
+            <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flexWrap: "wrap" }}>
+              <QrCode value={payload.otpauth_uri} size={200} alt="QR code para enrollment TOTP" />
+              <div style={{ flex: 1, minWidth: 220, display: "flex", flexDirection: "column", gap: 8 }}>
+                <p style={{ fontSize: 11, color: "var(--ink3)", margin: 0 }}>
+                  Abra seu autenticador e escaneie. Se não der pra escanear, copie a URI abaixo e cole manualmente:
+                </p>
+                <code style={{ display: "block", padding: "8px 10px", borderRadius: 8, background: "var(--bg)", border: "1px solid var(--rule2)", fontSize: 10.5, wordBreak: "break-all" }}>
+                  {payload.otpauth_uri}
+                </code>
+              </div>
+            </div>
           </Section>
 
           <Section title="2. Anote seus recovery codes (mostrados UMA vez)">
