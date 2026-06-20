@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Rota Saúde · Admin Console</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: oklch(98.4% 0.002 255); }
+  body { font-family: var(--sans); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  #root { height: 100%; }
+  code { font-family: var(--mono); }
+  button { font-family: var(--sans); }
+  ::selection { background: oklch(90% 0.05 264); }
+
+  /* scrollbars — slim, neutral */
+  *::-webkit-scrollbar { width: 9px; height: 9px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: oklch(86% 0.005 255); border-radius: 6px; border: 2px solid transparent; background-clip: content-box; }
+  *::-webkit-scrollbar-thumb:hover { background: oklch(78% 0.006 255); border: 2px solid transparent; background-clip: content-box; }
+
+  @keyframes acpulse { 0% { transform: scale(1); opacity: 0.4; } 70% { transform: scale(2.4); opacity: 0; } 100% { opacity: 0; } }
+  @keyframes acshimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <rect width="100" height="100" fill="oklch(52% 0.14 264)"/>
+    <rect x="28" y="28" width="44" height="44" rx="9" fill="oklch(26% 0.01 260)"/>
+    <g transform="translate(28 28) scale(0.9167)" fill="none" stroke="oklch(98% 0.002 255)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="24" cy="24" r="18"/>
+      <path d="M8 24 H 16 L 19 18 L 24 30 L 29 18 L 32 24 H 40"/>
+    </g>
+  </svg>
+</template>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script>
+  window.TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "period": "today",
+    "muni": "pinhais",
+    "density": "confortável"
+  }/*EDITMODE-END*/;
+</script>
+
+<script src="console-data.js"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="console-ui.jsx"></script>
+<script type="text/babel" src="console-modules-a.jsx"></script>
+<script type="text/babel" src="console-modules-b.jsx"></script>
+<script type="text/babel" src="console-app.jsx"></script>
+</body>
+</html>
