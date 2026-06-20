@@ -2,7 +2,7 @@
 //
 //   - Base = VITE_ADMIN_API_BASE (default "/admin/api"), Vite proxa pro Rails.
 //   - Envelope universal: { data, as_of }. O caller recebe os DOIS.
-//   - Auth: cookie de sessão HttpOnly (ADR-0019). Browser envia automático.
+//   - Auth: cookie de sessão HttpOnly (ADR-0022). Browser envia automático.
 //     credentials: "include" garante que cookies vão também em chamadas
 //     com base diferente da página (ex.: /session).
 

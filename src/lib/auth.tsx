@@ -1,5 +1,5 @@
 // AuthContext — estado de sessão do Admin Console. Persistido server-side
-// (cookie HttpOnly, ADR-0019); o React só decora a UI ao redor.
+// (cookie HttpOnly, ADR-0022); o React só decora a UI ao redor.
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { fetchCurrentSession, login as apiLogin, logout as apiLogout, type SessionUser } from "./api";
