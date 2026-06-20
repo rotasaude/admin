@@ -17,15 +17,28 @@ import { Protocols } from "./modules/Protocols";
 import { Queues } from "./modules/Queues";
 import { Events } from "./modules/Events";
 import { Health } from "./modules/Health";
+import { ProvisionMunicipality } from "./modules/setup/ProvisionMunicipality";
+import { Members } from "./modules/setup/Members";
+import { MfaEnroll } from "./modules/setup/MfaEnroll";
+import { useAuth } from "./lib/auth";
 
 export function App() {
   const [ period, setPeriod ] = useState<PeriodKey>("7d");
-  const [ municipalityId, setMunicipality ] = useState<string | "all">("default");
+  const { activeMunicipalityId } = useAuth();
   const [ active, setActive ] = useState<ModuleId>("overview");
 
+  // O ScopeContext herdado espera setMunicipality como string | "all".
+  // O switch real de cidade agora vive em AuthContext (com headers HTTP).
+  // Aqui só refletimos pro shell legado.
+  const muniForLegacy = activeMunicipalityId || "default";
   return (
     <ScopeContext.Provider
-      value={{ period, municipalityId, setPeriod, setMunicipality }}
+      value={{
+        period,
+        municipalityId: muniForLegacy,
+        setPeriod,
+        setMunicipality: () => { /* gerido pelo AuthContext */ }
+      }}
     >
       <ShellInner active={active} setActive={setActive} />
     </ScopeContext.Provider>
@@ -56,5 +69,8 @@ function renderModule(id: ModuleId, onNavigate: (id: ModuleId) => void) {
     case "queues":         return <Queues />;
     case "events":         return <Events />;
     case "health":         return <Health />;
+    case "setup_provision": return <ProvisionMunicipality />;
+    case "setup_members":   return <Members />;
+    case "setup_mfa":       return <MfaEnroll />;
   }
 }

@@ -23,6 +23,7 @@ interface Props {
 
 export function AppHeader({ active, onSelect, alerts }: Props) {
   const scope = useScope();
+  const auth = useAuth();
   const [ openGroup, setOpenGroup ] = useState<string | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
 
@@ -77,18 +78,27 @@ export function AppHeader({ active, onSelect, alerts }: Props) {
             minWidth: 0
           }}
         >
-          {NAV_GROUPS.map((g) => (
-            <NavDropdown
-              key={g.label}
-              label={g.label}
-              items={g.items}
-              active={active}
-              isOpen={openGroup === g.label}
-              onToggle={() => setOpenGroup((cur) => (cur === g.label ? null : g.label))}
-              onClose={() => setOpenGroup(null)}
-              onSelect={onSelect}
-            />
-          ))}
+          {NAV_GROUPS.map((g) => {
+            const items = g.items.filter((it) => {
+              if (!it.visible) return true;
+              const user = auth.user;
+              if (!user) return false;
+              return it.visible({ operator: user.operator, memberships: user.memberships });
+            });
+            if (items.length === 0) return null;
+            return (
+              <NavDropdown
+                key={g.label}
+                label={g.label}
+                items={items}
+                active={active}
+                isOpen={openGroup === g.label}
+                onToggle={() => setOpenGroup((cur) => (cur === g.label ? null : g.label))}
+                onClose={() => setOpenGroup(null)}
+                onSelect={onSelect}
+              />
+            );
+          })}
         </nav>
 
         <div

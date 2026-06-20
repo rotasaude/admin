@@ -117,7 +117,69 @@ export function Login() {
         >
           {submitting ? "Entrando…" : "Entrar"}
         </button>
+
+        <GovBrButton />
       </form>
+    </div>
+  );
+}
+
+// Botão gov.br: gera a authorize URL com state random e redireciona.
+// Backend recebe ?code= no callback (Phase 3.7 + C11).
+function GovBrButton() {
+  function startGovBr() {
+    const authorizeUrl = import.meta.env.VITE_GOVBR_AUTHORIZE_URL || "";
+    const clientId     = import.meta.env.VITE_GOVBR_CLIENT_ID || "";
+    const redirectUri  = import.meta.env.VITE_GOVBR_REDIRECT_URI || `${window.location.origin}/auth/govbr/callback`;
+    if (!authorizeUrl || !clientId) {
+      alert("gov.br ainda não configurado neste ambiente.");
+      return;
+    }
+    const state = crypto.randomUUID();
+    sessionStorage.setItem("govbr_state", state);
+    const url = new URL(authorizeUrl);
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", clientId);
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set("scope", "openid profile email govbr_confiabilidades");
+    url.searchParams.set("state", state);
+    window.location.href = url.toString();
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4 }}>
+      <Separator />
+      <button
+        type="button"
+        onClick={startGovBr}
+        style={{
+          padding: "10px 12px",
+          borderRadius: 8,
+          border: "1px solid var(--rule2)",
+          background: "var(--panel)",
+          color: "var(--ink)",
+          fontFamily: "var(--font-sans)",
+          fontSize: 13,
+          fontWeight: 500,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8
+        }}
+      >
+        Entrar com gov.br
+      </button>
+    </div>
+  );
+}
+
+function Separator() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10.5, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: 0.6 }}>
+      <span style={{ flex: 1, height: 1, background: "var(--rule2)" }} />
+      ou
+      <span style={{ flex: 1, height: 1, background: "var(--rule2)" }} />
     </div>
   );
 }

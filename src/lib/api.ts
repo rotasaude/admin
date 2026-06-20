@@ -1,13 +1,22 @@
-// Cliente HTTP do Admin Console.
+// Cliente HTTP do Admin Console + setup multi-tenant.
 //
-//   - Base = VITE_ADMIN_API_BASE (default "/admin/api"), Vite proxa pro Rails.
-//   - Envelope universal: { data, as_of }. O caller recebe os DOIS.
-//   - Auth: cookie de sessão HttpOnly (ADR-0022). Browser envia automático.
-//     credentials: "include" garante que cookies vão também em chamadas
-//     com base diferente da página (ex.: /session).
+//   - Base admin = VITE_ADMIN_API_BASE (default "/admin/api"), proxy via Vite.
+//   - Envelope universal nos admin endpoints: { data, as_of }.
+//   - Auth: cookie de sessão HttpOnly (ADR-0022). credentials: "include".
+//   - X-Municipality-Id: header opcional para operador trocar de cidade
+//     (ver setMunicipalityHeader). Backend Phase 4.5 resolve current_municipality
+//     a partir desse header quando user.operator?.
 
 const BASE = import.meta.env.VITE_ADMIN_API_BASE || "/admin/api";
 const SESSION_BASE = import.meta.env.VITE_SESSION_BASE || "/session";
+const SETUP_BASE = "/setup";
+
+// Header dinâmico — alterado pelo ScopePicker quando operador troca cidade.
+let municipalityHeader: string | null = null;
+
+export function setMunicipalityHeader(municipalityId: string | null) {
+  municipalityHeader = municipalityId;
+}
 
 export interface Envelope<T> {
   data: T & { scope?: ScopeBlock };
@@ -30,10 +39,32 @@ export class ApiError extends Error {
   }
 }
 
+export interface Membership {
+  municipality_id: string;
+  municipality_name: string;
+  municipality_uf: string | null;
+  role: string;
+}
+
 export interface SessionUser {
   id: string;
   email_address: string;
-  municipality: { id: string; name: string; uf: string | null } | null;
+  mfa_enrolled: boolean;
+  operator: boolean;
+  mfa_verified_at: string | null;
+  memberships: Membership[];
+}
+
+// Resposta especial do POST /session quando user é operador.
+export interface MfaRequired {
+  mfa_required: true;
+  session_id: string;
+}
+
+export type LoginResponse = SessionUser | MfaRequired;
+
+export function isMfaRequired(r: LoginResponse): r is MfaRequired {
+  return (r as MfaRequired).mfa_required === true;
 }
 
 async function jsonFetch<T>(input: string, init?: RequestInit): Promise<T> {
@@ -43,6 +74,7 @@ async function jsonFetch<T>(input: string, init?: RequestInit): Promise<T> {
     headers: {
       Accept: "application/json",
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
+      ...(municipalityHeader ? { "X-Municipality-Id": municipalityHeader } : {}),
       ...(init?.headers || {})
     }
   });
@@ -53,7 +85,6 @@ async function jsonFetch<T>(input: string, init?: RequestInit): Promise<T> {
     throw new ApiError(res.status, body, `${res.status} on ${input}`);
   }
 
-  // 204 No Content
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
@@ -70,10 +101,17 @@ export async function adminFetch<T>(path: string, params?: Record<string, string
 
 // ─── Sessão ──────────────────────────────────────────────────────────────────
 
-export async function login(email_address: string, password: string): Promise<SessionUser> {
-  return jsonFetch<SessionUser>(SESSION_BASE, {
+export async function login(email_address: string, password: string): Promise<LoginResponse> {
+  return jsonFetch<LoginResponse>(SESSION_BASE, {
     method: "POST",
     body: JSON.stringify({ email_address, password })
+  });
+}
+
+export async function challengeTotp(session_id: string, code: string): Promise<SessionUser> {
+  return jsonFetch<SessionUser>(`${SESSION_BASE}/challenge`, {
+    method: "POST",
+    body: JSON.stringify({ session_id, code })
   });
 }
 
@@ -88,4 +126,117 @@ export async function fetchCurrentSession(): Promise<SessionUser | null> {
 
 export async function logout(): Promise<void> {
   await jsonFetch<void>(SESSION_BASE, { method: "DELETE" });
+}
+
+// ─── MFA ─────────────────────────────────────────────────────────────────────
+
+export interface MfaEnrollPayload {
+  otpauth_uri: string;
+  recovery_codes: string[];
+}
+
+export async function mfaEnroll(): Promise<MfaEnrollPayload> {
+  return jsonFetch<MfaEnrollPayload>("/mfa/enroll", { method: "POST", body: JSON.stringify({}) });
+}
+
+export async function mfaConfirm(code: string): Promise<{ ok: true }> {
+  return jsonFetch<{ ok: true }>("/mfa/confirm", {
+    method: "POST",
+    body: JSON.stringify({ code })
+  });
+}
+
+export async function mfaStepUp(code: string): Promise<{ ok: true }> {
+  return jsonFetch<{ ok: true }>("/mfa/step_up", {
+    method: "POST",
+    body: JSON.stringify({ code })
+  });
+}
+
+// ─── Setup endpoints (write) ──────────────────────────────────────────────────
+
+export interface ProvisionPayload {
+  name: string;
+  slug: string;
+  ibge_code: string;
+  uf?: string;
+  channel: {
+    phone_number_id: string;
+    waba_id: string;
+    display_phone_number: string;
+    access_token: string;
+  };
+  admin_email: string;
+  terms: { version?: string; body: string };
+  alert: { channel: string; destination: string; escalation_order?: number }[];
+  template?: { name: string; definition: unknown };
+}
+
+export interface ProvisionResult {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export async function setupProvisionMunicipality(payload: ProvisionPayload): Promise<ProvisionResult> {
+  return jsonFetch<ProvisionResult>(`${SETUP_BASE}/municipalities`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export interface InvitePayload {
+  email: string;
+  role: string;
+  municipality_id?: string;
+}
+
+export interface InviteResult {
+  id: string;
+  email: string;
+  role: string;
+  expires_at: string;
+}
+
+export async function setupInviteMember(payload: InvitePayload): Promise<InviteResult> {
+  return jsonFetch<InviteResult>(`${SETUP_BASE}/invitations`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function setupAcceptInvitation(token: string, password: string): Promise<SessionUser> {
+  return jsonFetch<SessionUser>(`${SETUP_BASE}/accept_invitation`, {
+    method: "POST",
+    body: JSON.stringify({ token, password })
+  });
+}
+
+export interface MembershipRow {
+  id: string;
+  user: { id: string; email_address: string };
+  municipality_id: string;
+  role: string;
+  granted_at: string;
+}
+
+export async function setupListMemberships(municipality_id?: string): Promise<MembershipRow[]> {
+  const url = new URL(`${SETUP_BASE}/memberships`, window.location.origin);
+  if (municipality_id) url.searchParams.set("municipality_id", municipality_id);
+  const res = await jsonFetch<{ data: MembershipRow[] }>(url.toString());
+  return res.data;
+}
+
+export async function setupRevokeMembership(id: string): Promise<{ id: string; revoked_at: string }> {
+  return jsonFetch<{ id: string; revoked_at: string }>(`${SETUP_BASE}/memberships/${id}/revoke`, {
+    method: "POST",
+    body: JSON.stringify({})
+  });
+}
+
+export async function setupDeactivateUser(id: string): Promise<{ id: string; deactivated_at: string }> {
+  return jsonFetch<{ id: string; deactivated_at: string }>(`${SETUP_BASE}/users/${id}/deactivate`, {
+    method: "POST",
+    body: JSON.stringify({})
+  });
 }

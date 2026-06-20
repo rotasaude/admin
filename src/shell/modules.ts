@@ -11,12 +11,18 @@ export type ModuleId =
   | "protocols"
   | "events"
   | "queues"
-  | "health";
+  | "health"
+  // Setup multi-tenant (ADR-0023/0024)
+  | "setup_provision"
+  | "setup_members"
+  | "setup_mfa";
 
 export interface NavItem {
   id: ModuleId;
   label: string;
   icon: string;
+  // Visibilidade: se função, recebe SessionUser e retorna se deve aparecer.
+  visible?: (user: { operator: boolean; memberships: { role: string }[] }) => boolean;
 }
 
 export interface NavGroupDef {
@@ -58,6 +64,24 @@ export const NAV_GROUPS: NavGroupDef[] = [
     items: [
       { id: "queues", label: "Filas & jobs", icon: "≋" },
       { id: "health", label: "Saúde",        icon: "◍" }
+    ]
+  },
+  {
+    label: "Setup",
+    items: [
+      {
+        id: "setup_provision",
+        label: "Provisionar cidade",
+        icon: "+",
+        visible: (u) => u.operator
+      },
+      {
+        id: "setup_members",
+        label: "Memberships",
+        icon: "☰",
+        visible: (u) => u.operator || u.memberships.some((m) => m.role === "municipal_admin")
+      },
+      { id: "setup_mfa", label: "MFA / 2 etapas", icon: "▢" }
     ]
   }
 ];

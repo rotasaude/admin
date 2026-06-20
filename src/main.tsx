@@ -1,4 +1,4 @@
-import { StrictMode, useState } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // Fontes self-hosted via @fontsource — sem fetch externo (preferência LGPD/perf).
@@ -6,6 +6,8 @@ import "@fontsource-variable/geist/index.css";
 import "@fontsource-variable/geist-mono/index.css";
 import { App } from "./App";
 import { Login } from "./modules/Login";
+import { MfaChallenge } from "./modules/setup/MfaChallenge";
+import { AcceptInvitation } from "./modules/setup/AcceptInvitation";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { ApiError } from "./lib/api";
 import "./theme/global.css";
@@ -18,11 +20,15 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>
 );
 
-// AppRoot gates render por estado de auth. QueryClient é criado AQUI para
-// ter acesso ao auth.reload() no onError do QueryCache — qualquer 401 em
-// qualquer endpoint admin força revalidação da sessão (que cai pra Login).
+// AppRoot decide qual surface mostrar:
+//   ?invite=<token>             → AcceptInvitation (público)
+//   auth.kind = loading         → Splash
+//   auth.kind = anonymous       → Login
+//   auth.kind = mfa_required    → MfaChallenge
+//   auth.kind = authenticated   → App (com QueryClient)
 function AppRoot() {
   const auth = useAuth();
+  const [ inviteToken, setInviteToken ] = useState<string | null>(() => readInviteFromUrl());
 
   const [ queryClient ] = useState(() => new QueryClient({
     queryCache: new QueryCache({
@@ -44,13 +50,43 @@ function AppRoot() {
     }
   }));
 
+  // Quando o user aceita o convite com sucesso, AuthProvider passa para
+  // authenticated. Limpa o ?invite= da URL nesse momento.
+  useEffect(() => {
+    if (auth.state.kind === "authenticated" && inviteToken) {
+      setInviteToken(null);
+      clearInviteFromUrl();
+    }
+  }, [ auth.state.kind, inviteToken ]);
+
+  if (inviteToken && auth.state.kind !== "authenticated") {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AcceptInvitation token={inviteToken} onCancel={() => { setInviteToken(null); clearInviteFromUrl(); }} />
+      </QueryClientProvider>
+    );
+  }
+
   if (auth.state.kind === "loading") return <Splash />;
   if (auth.state.kind === "anonymous") return <Login />;
+  if (auth.state.kind === "mfa_required") return <MfaChallenge />;
+
   return (
     <QueryClientProvider client={queryClient}>
       <App />
     </QueryClientProvider>
   );
+}
+
+function readInviteFromUrl(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("invite");
+}
+
+function clearInviteFromUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("invite");
+  window.history.replaceState({}, "", url.toString());
 }
 
 function Splash() {
