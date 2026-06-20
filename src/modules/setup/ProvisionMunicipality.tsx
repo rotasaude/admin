@@ -58,14 +58,16 @@ export function ProvisionMunicipality() {
 
   if (done) {
     return (
-      <Page title="Província criada">
+      <Page title="Cidade provisionada">
         <div style={{ padding: 14, borderRadius: 8, background: "var(--up-bg)", color: "var(--up)" }}>
-          ✓ <strong>{done.name}</strong> (slug <code>{done.slug}</code>) provisionada.
-          Um convite foi enviado para <code>{form.admin_email}</code>.
+          ✓ <strong>{done.name}</strong> (slug <code>{done.slug}</code>) está ativa.
         </div>
-        <button onClick={() => { setDone(null); setForm(initialForm()); }} style={btnGhost}>
-          Provisionar outra
-        </button>
+        {done.invitation && <InviteCard inv={done.invitation} />}
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => { setDone(null); setForm(initialForm()); }} style={btnGhost}>
+            Provisionar outra
+          </button>
+        </div>
       </Page>
     );
   }
@@ -73,9 +75,14 @@ export function ProvisionMunicipality() {
   return (
     <Page title="Provisionar nova cidade">
       <p style={{ fontSize: 12, color: "var(--ink3)", marginTop: -8 }}>
-        Apenas operadores de plataforma podem provisionar. O 1º admin recebe um e-mail
-        com link de aceite e define a senha lá. ADR-0024.
+        Apenas operadores de plataforma podem provisionar. Cria município + canal WhatsApp
+        + termo de consentimento + alertas + convite para o 1º admin (ADR-0024).
       </p>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button type="button" onClick={() => setForm(sampleForm())} style={btnGhost}>
+          Preencher com dados de teste
+        </button>
+      </div>
 
       <form onSubmit={submit} style={{ display: "grid", gap: 16 }}>
         <Group title="Cidade">
@@ -144,6 +151,62 @@ export function ProvisionMunicipality() {
   );
 }
 
+function InviteCard({ inv }: { inv: NonNullable<ProvisionResult["invitation"]> }) {
+  const [ copied, setCopied ] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(inv.accept_url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch { /* clipboard may be blocked; ignore */ }
+  }
+  return (
+    <section style={{ background: "var(--panel)", border: "1px solid var(--rule)", borderRadius: "var(--radius-panel)", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+      <h2 className="mono" style={{ margin: 0, fontSize: 11, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: 0.7 }}>
+        Convite do 1º admin
+      </h2>
+      <p style={{ fontSize: 12, color: "var(--ink2)", margin: 0 }}>
+        Envie este link para <code>{inv.email}</code>. Ele expira em{" "}
+        {new Date(inv.expires_at).toLocaleString("pt-BR")} e abre a tela de aceite com criação de senha.
+      </p>
+      <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+        <input
+          readOnly
+          value={inv.accept_url}
+          onFocus={(e) => e.currentTarget.select()}
+          style={{
+            flex: 1,
+            padding: "9px 10px",
+            fontSize: 12,
+            fontFamily: "var(--font-mono)",
+            color: "var(--ink)",
+            background: "var(--bg)",
+            border: "1px solid var(--rule2)",
+            borderRadius: 8,
+            outline: "none"
+          }}
+        />
+        <button onClick={copy} style={{
+          padding: "0 14px",
+          borderRadius: 8,
+          border: "1px solid var(--rule2)",
+          background: copied ? "var(--up-bg)" : "var(--panel)",
+          color: copied ? "var(--up)" : "var(--ink)",
+          fontFamily: "var(--font-sans)",
+          fontSize: 12,
+          fontWeight: 600,
+          cursor: "pointer"
+        }}>
+          {copied ? "Copiado ✓" : "Copiar"}
+        </button>
+      </div>
+      <p style={{ fontSize: 11, color: "var(--ink3)", margin: 0 }}>
+        Sem mailer hoje — o operador é quem entrega o link manualmente.
+      </p>
+    </section>
+  );
+}
+
 function initialForm(): ProvisionPayload {
   return {
     name: "", slug: "", ibge_code: "", uf: "",
@@ -151,6 +214,32 @@ function initialForm(): ProvisionPayload {
     admin_email: "",
     terms: { version: "v1", body: "" },
     alert: [ { channel: "email", destination: "", escalation_order: 0 } ]
+  };
+}
+
+// Dados de teste — slug com sufixo random para evitar colisão entre runs.
+function sampleForm(): ProvisionPayload {
+  const suffix = Math.random().toString(36).slice(2, 7);
+  return {
+    name: "Cidade Demo",
+    slug: `demo-${suffix}`,
+    ibge_code: "3550308",
+    uf: "SP",
+    channel: {
+      phone_number_id: `PNID-${suffix}`,
+      waba_id: `WABA-${suffix}`,
+      display_phone_number: "+551133334444",
+      access_token: "EAAtoken_teste_substituir"
+    },
+    admin_email: `admin+${suffix}@rota-saude.local`,
+    terms: {
+      version: "v1",
+      body: "Termo de consentimento de teste. Substituir antes da produção. " +
+            "O cidadão concorda com o uso de respostas para triagem clínica."
+    },
+    alert: [
+      { channel: "email", destination: `ops+${suffix}@rota-saude.local`, escalation_order: 0 }
+    ]
   };
 }
 

@@ -181,6 +181,13 @@ export interface ProvisionResult {
   id: string;
   name: string;
   slug: string;
+  invitation: {
+    id: string;
+    email: string;
+    token: string;
+    expires_at: string;
+    accept_url: string;
+  } | null;
 }
 
 export async function setupProvisionMunicipality(payload: ProvisionPayload): Promise<ProvisionResult> {
