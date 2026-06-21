@@ -130,7 +130,7 @@ export function MfaEnroll({ onDone }: { onDone?: () => void }) {
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ background: "var(--panel)", border: "1px solid var(--rule)", borderRadius: "var(--radius-panel)", padding: 22, width: "100%", maxWidth: 540, display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ background: "var(--panel)", border: "1px solid var(--rule)", borderRadius: "var(--radius-panel)", padding: 22, width: "100%", display: "flex", flexDirection: "column", gap: 14 }}>
       {children}
     </div>
   );

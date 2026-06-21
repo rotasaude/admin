@@ -64,7 +64,7 @@ export function Members() {
   }
 
   return (
-    <div style={{ maxWidth: 880, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
       <h1 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>Memberships</h1>
 
       <section style={cardStyle}>

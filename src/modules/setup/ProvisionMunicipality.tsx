@@ -245,7 +245,7 @@ function sampleForm(): ProvisionPayload {
 
 function Page({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ maxWidth: 880, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }}>
       <h1 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>{title}</h1>
       {children}
     </div>
