@@ -1,5 +1,5 @@
 // Página pública (sem auth) que o convidado abre pelo link do e-mail.
-// URL esperado: /dashboard/?invite=<token>
+// URL esperado: /admin/?invite=<token>
 // POST /setup/accept_invitation { token, password } → cria User + Identity +
 // Membership + abre sessão.
 

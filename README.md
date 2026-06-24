@@ -28,7 +28,7 @@ docker compose exec api bin/rails runner \
 cd apps/dashboard
 cp .env.example .env       # token "dev-token-1" combinando com o passo acima
 pnpm install               # ou npm/yarn — package.json tem só deps mínimas
-pnpm dev                   # abre em http://localhost:5173/dashboard/
+pnpm dev                   # abre em http://localhost:5173/admin/
 ```
 
 O Vite proxa `/admin/api/*` para `http://localhost:3030` (Rails container).
@@ -80,7 +80,7 @@ src/
 ## Verificação local
 
 - Backend de pé em :3030, Author criado, `.env` com token → `pnpm dev` →
-  http://localhost:5173/dashboard/ deve mostrar 5 KPIs com valores reais
+  http://localhost:5173/admin/ deve mostrar 5 KPIs com valores reais
   (zerados em dev limpo) e o sino com a seção "Limitações conhecidas" sempre lá.
 
 ## Próximos passos (fora do slice atual)
