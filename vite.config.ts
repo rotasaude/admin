@@ -15,7 +15,7 @@ const proxy = (target: string) => ({ target, changeOrigin: true });
 
 export default defineConfig({
   plugins: [react()],
-  base: "/dashboard/",
+  base: "/admin/",
   server: {
     port: 5173,
     host: "0.0.0.0",
