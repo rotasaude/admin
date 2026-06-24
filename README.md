@@ -25,7 +25,7 @@ docker compose exec api bin/rails runner \
 ### 2. Frontend
 
 ```bash
-cd apps/dashboard
+cd apps/admin
 cp .env.example .env       # token "dev-token-1" combinando com o passo acima
 pnpm install               # ou npm/yarn — package.json tem só deps mínimas
 pnpm dev                   # abre em http://localhost:5173/admin/
