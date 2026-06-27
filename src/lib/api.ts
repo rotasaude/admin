@@ -11,7 +11,7 @@ const BASE = import.meta.env.VITE_ADMIN_API_BASE || "/admin/api";
 const SESSION_BASE = import.meta.env.VITE_SESSION_BASE || "/session";
 const SETUP_BASE = "/setup";
 
-// Header dinâmico — alterado pelo ScopePicker quando operador troca cidade.
+// Header dinâmico — alterado pelo AuthContext quando o operador troca de cidade.
 let municipalityHeader: string | null = null;
 
 export function setMunicipalityHeader(municipalityId: string | null) {
