@@ -1,6 +1,6 @@
 // AppHeader — navbar sticky (NAVBAR.md §1).
 // 4 zonas: marca · divisor · nav (grupos com dropdown) · controles à direita
-// (município, período, divisor, sino, relógio).
+// (período, divisor, sino, relógio). O switch de cidade vive no AuthContext.
 //
 // Único dropdown de nav aberto por vez: estado vive aqui e desce para
 // NavDropdown via props (NAVBAR.md §3.4).
@@ -8,7 +8,6 @@
 import { useEffect, useRef, useState } from "react";
 import { NavDropdown } from "./NavDropdown";
 import { SegmentedControl } from "./SegmentedControl";
-import { ScopePicker } from "./ScopePicker";
 import { NotificationCenter } from "./NotificationCenter";
 import { NAV_GROUPS, type ModuleId } from "./modules";
 import { PERIOD_OPTIONS, useScope } from "../lib/scope";
@@ -109,7 +108,6 @@ export function AppHeader({ active, onSelect, alerts }: Props) {
             flexShrink: 0
           }}
         >
-          <ScopePicker value={scope.municipalityId} onChange={scope.setMunicipality} />
           <SegmentedControl
             options={PERIOD_OPTIONS}
             value={scope.period}
