@@ -73,6 +73,6 @@ function renderModule(id: ModuleId, onNavigate: (id: ModuleId) => void) {
     case "setup_provision": return <ProvisionMunicipality />;
     case "setup_members":   return <Members />;
     case "setup_mfa":       return <MfaEnroll />;
-    case "cities":          return <Cities onNavigate={onNavigate} />;
+    case "cities": return <Cities />;
   }
 }

@@ -3,20 +3,12 @@
 //   - Base admin = VITE_ADMIN_API_BASE (default "/admin/api"), proxy via Vite.
 //   - Envelope universal nos admin endpoints: { data, as_of }.
 //   - Auth: cookie de sessão HttpOnly (ADR-0022). credentials: "include".
-//   - X-Municipality-Id: header opcional para operador trocar de cidade
-//     (ver setMunicipalityHeader). Backend Phase 4.5 resolve current_municipality
-//     a partir desse header quando user.operator?.
+
+import type { CityRow } from "./types";
 
 const BASE = import.meta.env.VITE_ADMIN_API_BASE || "/admin/api";
 const SESSION_BASE = import.meta.env.VITE_SESSION_BASE || "/session";
 const SETUP_BASE = "/setup";
-
-// Header dinâmico — alterado pelo AuthContext quando o operador troca de cidade.
-let municipalityHeader: string | null = null;
-
-export function setMunicipalityHeader(municipalityId: string | null) {
-  municipalityHeader = municipalityId;
-}
 
 export interface Envelope<T> {
   data: T & { scope?: ScopeBlock };
@@ -74,7 +66,6 @@ async function jsonFetch<T>(input: string, init?: RequestInit): Promise<T> {
     headers: {
       Accept: "application/json",
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
-      ...(municipalityHeader ? { "X-Municipality-Id": municipalityHeader } : {}),
       ...(init?.headers || {})
     }
   });
@@ -250,5 +241,21 @@ export async function setupDeactivateUser(id: string): Promise<{ id: string; dea
   return jsonFetch<{ id: string; deactivated_at: string }>(`${SETUP_BASE}/users/${id}/deactivate`, {
     method: "POST",
     body: JSON.stringify({})
+  });
+}
+
+// ─── Console de plataforma (Plano 6) ─────────────────────────────────────────
+
+export interface CityGrant { redirect_url: string; expires_in: number }
+
+export async function listCities(): Promise<CityRow[]> {
+  const res = await jsonFetch<{ data: CityRow[] }>("/cities");
+  return res.data;
+}
+
+export async function createCityGrant(city_slug: string): Promise<CityGrant> {
+  return jsonFetch<CityGrant>("/city_grants", {
+    method: "POST",
+    body: JSON.stringify({ city_slug })
   });
 }

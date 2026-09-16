@@ -1,14 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { adminFetch } from "../lib/api";
-import { useScope } from "../lib/scope";
-import type { CitiesData } from "../lib/types";
+import { listCities } from "../lib/api";
 
-// Cross-tenant (operador): envia só o período, nunca municipality_id.
+// Catálogo da plataforma: não depende de período nem de cidade ativa.
 export function useCities() {
-  const scope = useScope();
-  return useQuery({
-    queryKey: [ "cities", scope.period ],
-    queryFn: () => adminFetch<CitiesData>("/cities", { period: scope.period }),
-    staleTime: 30_000
-  });
+  return useQuery({ queryKey: [ "cities" ], queryFn: listCities, staleTime: 30_000 });
 }

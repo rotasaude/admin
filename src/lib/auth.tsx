@@ -17,7 +17,6 @@ import {
   challengeTotp as apiChallenge,
   logout as apiLogout,
   isMfaRequired,
-  setMunicipalityHeader,
   type SessionUser
 } from "./api";
 
@@ -46,14 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [ activeMunicipalityId, setActiveMunicipalityIdState ] = useState<string | null>(null);
 
   const pickDefaultMunicipality = useCallback((user: SessionUser) => {
-    if (user.memberships[0]) {
-      const id = user.memberships[0].municipality_id;
-      setActiveMunicipalityIdState(id);
-      setMunicipalityHeader(id);
-    } else {
-      setActiveMunicipalityIdState(null);
-      setMunicipalityHeader(null);
-    }
+    setActiveMunicipalityIdState(user.memberships[0]?.municipality_id ?? null);
   }, []);
 
   const reload = useCallback(async () => {
@@ -64,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setState({ kind: "anonymous" });
       setActiveMunicipalityIdState(null);
-      setMunicipalityHeader(null);
     }
   }, [ pickDefaultMunicipality ]);
 
@@ -99,13 +90,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     await apiLogout();
     setActiveMunicipalityIdState(null);
-    setMunicipalityHeader(null);
     setState({ kind: "anonymous" });
   }, []);
 
   const setActiveMunicipality = useCallback((id: string | null) => {
     setActiveMunicipalityIdState(id);
-    setMunicipalityHeader(id);
   }, []);
 
   const value = useMemo<AuthValue>(() => ({
