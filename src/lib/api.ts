@@ -5,6 +5,7 @@
 //   - Auth: cookie de sessão HttpOnly (ADR-0022). credentials: "include".
 
 import type { CityRow } from "./types";
+import type { ProvisionCityPayload } from "./provisioning";
 
 const BASE = import.meta.env.VITE_ADMIN_API_BASE || "/admin/api";
 const SESSION_BASE = import.meta.env.VITE_SESSION_BASE || "/session";
@@ -171,5 +172,17 @@ export async function createCityGrant(city_slug: string): Promise<CityGrant> {
   return jsonFetch<CityGrant>("/city_grants", {
     method: "POST",
     body: JSON.stringify({ city_slug })
+  });
+}
+
+export interface CreateCityResult { id: string }
+
+// POST /cities — PlatformConsoleHost, operador com MFA. Assíncrono: 202 {id} e
+// o worker provisiona. O convite do primeiro admin vai por e-mail; o token
+// nunca volta para o console (contrato do Plano 4).
+export async function createCity(payload: ProvisionCityPayload): Promise<CreateCityResult> {
+  return jsonFetch<CreateCityResult>("/cities", {
+    method: "POST",
+    body: JSON.stringify(payload)
   });
 }
