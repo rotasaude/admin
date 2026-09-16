@@ -20,6 +20,7 @@ import { Health } from "./modules/Health";
 import { ProvisionMunicipality } from "./modules/setup/ProvisionMunicipality";
 import { Members } from "./modules/setup/Members";
 import { MfaEnroll } from "./modules/setup/MfaEnroll";
+import { Cities } from "./modules/Cities";
 import { useAuth } from "./lib/auth";
 
 export function App() {
@@ -72,5 +73,6 @@ function renderModule(id: ModuleId, onNavigate: (id: ModuleId) => void) {
     case "setup_provision": return <ProvisionMunicipality />;
     case "setup_members":   return <Members />;
     case "setup_mfa":       return <MfaEnroll />;
+    case "cities":          return <Cities onNavigate={onNavigate} />;
   }
 }

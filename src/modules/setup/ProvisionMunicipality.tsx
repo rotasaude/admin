@@ -121,14 +121,17 @@ export function ProvisionMunicipality() {
         <Group title="Destinatários de alerta urgente">
           {form.alert.map((a, i) => (
             <Row key={i}>
-              <select
-                value={a.channel}
-                onChange={(e) => setAlertAt(i, "channel", e.target.value)}
-                style={{ ...inputStyle, maxWidth: 130 }}
-              >
-                <option value="email">email</option>
-                <option value="whatsapp">whatsapp</option>
-              </select>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, maxWidth: 130 }}>
+                <FieldLabel>Canal</FieldLabel>
+                <select
+                  value={a.channel}
+                  onChange={(e) => setAlertAt(i, "channel", e.target.value)}
+                  style={{ ...inputStyle, width: "100%" }}
+                >
+                  <option value="email">email</option>
+                  <option value="whatsapp">whatsapp</option>
+                </select>
+              </div>
               <Field label="Destino" value={a.destination} onChange={(v) => setAlertAt(i, "destination", v)} required />
               <Field label="Ordem" value={String(a.escalation_order ?? i)} onChange={(v) => setAlertAt(i, "escalation_order", Number(v))} maxWidth={80} />
               <button type="button" onClick={() => removeAlertAt(i)} style={{ ...btnGhost, alignSelf: "flex-end" }}>Remover</button>
@@ -267,6 +270,14 @@ function Row({ children }: { children: React.ReactNode }) {
   return <div style={{ display: "flex", gap: 10, alignItems: "flex-start", flexWrap: "wrap" }}>{children}</div>;
 }
 
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="mono" style={{ fontSize: 10.5, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: 0.6 }}>
+      {children}
+    </label>
+  );
+}
+
 function Field({
   label, value, onChange, required, type = "text", hint, maxWidth, textarea
 }: {
@@ -282,9 +293,7 @@ function Field({
   const common = { value, required, onChange: (e: any) => onChange(e.target.value), style: { ...inputStyle, width: "100%", minHeight: textarea ? 120 : undefined } };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0, maxWidth: maxWidth ?? "none" }}>
-      <label className="mono" style={{ fontSize: 10.5, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: 0.6 }}>
-        {label}
-      </label>
+      <FieldLabel>{label}</FieldLabel>
       {textarea
         ? <textarea {...(common as React.TextareaHTMLAttributes<HTMLTextAreaElement>)} />
         : <input type={type} {...(common as React.InputHTMLAttributes<HTMLInputElement>)} />

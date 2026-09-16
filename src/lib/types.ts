@@ -176,3 +176,54 @@ export interface HealthData {
   recurring: RecurringTaskRow[];
   driftOverall: number | null;
 }
+
+// ─── Cidades (Admin::Api::Cities) ────────────────────────────────────────────
+export interface CityChannel { active: boolean; display_phone_number: string }
+
+export interface CityMetrics {
+  conversations_active: number;
+  protocols_active: number;
+  triages_done: number;
+  triages_in_progress: number;
+  inbound: number;
+  outbound: number;
+  consents: number;
+  events: number;
+}
+
+export interface CitySummary {
+  id: string;
+  name: string;
+  uf: string | null;
+  slug: string;
+  status: string;
+  channel: CityChannel | null;
+  last_activity_at: string | null;
+  metrics: CityMetrics;
+}
+
+export interface CitiesData { cities: CitySummary[] }
+
+export interface CityKpi { id: string; label: string; value: number; spark: number[] }
+export interface CityResourceChannel { display_phone_number: string; phone_number_id: string; active: boolean }
+export interface CityConsentTerm { version: string; published_at: string }
+export interface CityAlertRecipient { channel: string; destination: string; escalation_order: number }
+export interface CityProtocol { name: string; version: number }
+export interface CityFirstAdmin { email: string; status: string }
+
+export interface CityResources {
+  channel: CityResourceChannel | null;
+  consent_term: CityConsentTerm | null;
+  alert_recipients: CityAlertRecipient[];
+  protocols_active: CityProtocol[];
+  first_admin: CityFirstAdmin | null;
+}
+
+export interface TimelineEntry { at: string; type: string; summary: string }
+
+export interface CityDetailData {
+  city: CitySummary & { ibge_code: string | null };
+  resources: CityResources;
+  kpis: CityKpi[];
+  timeline: TimelineEntry[];
+}
