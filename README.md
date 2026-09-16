@@ -28,10 +28,11 @@ docker compose exec api bin/rails runner \
 cd apps/admin
 cp .env.example .env       # token "dev-token-1" combinando com o passo acima
 pnpm install               # ou npm/yarn — package.json tem só deps mínimas
-pnpm dev                   # abre em http://localhost:5173/admin/
+pnpm dev                   # abre em http://admin.localhost:5174/admin/
 ```
 
-O Vite proxa `/admin/api/*` para `http://localhost:3030` (Rails container).
+O Vite proxa `/admin/api/*`, `/session`, `/mfa`, `/setup`, `/cities` e `/city_grants` para `http://localhost:3030`
+(container do Rails), sem reescrever o Host: o console vive no host reservado `admin.*`.
 
 ### Variáveis
 

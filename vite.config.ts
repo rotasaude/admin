@@ -9,9 +9,10 @@ import react from "@vitejs/plugin-react";
 //   /session, /session/challenge   → SessionsController
 //   /mfa/*                          → MfaController
 //   /setup/*                        → SetupController (provision, invite, etc)
-//   /auth/govbr/callback            → SessionsController#govbr_callback
 //   /admin/api/*                    → Admin::Api::* (read-only)
-const proxy = (target: string) => ({ target, changeOrigin: true });
+//   /cities/*, /city_grants/*       → gestão de cidades e grants (Task 4)
+const proxy = (target: string) => ({ target, changeOrigin: false });
+const TARGET = process.env.VITE_API_PROXY_TARGET || "http://localhost:3030";
 
 export default defineConfig({
   plugins: [react()],
@@ -19,12 +20,14 @@ export default defineConfig({
   server: {
     port: 5173,
     host: "0.0.0.0",
+    allowedHosts: [ ".localhost" ],
     proxy: {
-      "/admin/api": proxy(process.env.VITE_API_PROXY_TARGET || "http://localhost:3030"),
-      "/session":   proxy(process.env.VITE_API_PROXY_TARGET || "http://localhost:3030"),
-      "/mfa":       proxy(process.env.VITE_API_PROXY_TARGET || "http://localhost:3030"),
-      "/setup":     proxy(process.env.VITE_API_PROXY_TARGET || "http://localhost:3030"),
-      "/auth":      proxy(process.env.VITE_API_PROXY_TARGET || "http://localhost:3030")
+      "/admin/api": proxy(TARGET),
+      "/session":   proxy(TARGET),
+      "/mfa":       proxy(TARGET),
+      "/setup":     proxy(TARGET),
+      "/cities":    proxy(TARGET),
+      "/city_grants": proxy(TARGET)
     }
   }
 });
