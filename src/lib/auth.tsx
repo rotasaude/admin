@@ -34,30 +34,21 @@ interface AuthValue {
   cancelMfa: () => void;
   logout: () => Promise<void>;
   reload: () => Promise<void>;
-  setActiveMunicipality: (id: string | null) => void;
-  activeMunicipalityId: string | null;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [ state, setState ] = useState<AuthState>({ kind: "loading" });
-  const [ activeMunicipalityId, setActiveMunicipalityIdState ] = useState<string | null>(null);
-
-  const pickDefaultMunicipality = useCallback((user: SessionUser) => {
-    setActiveMunicipalityIdState(user.memberships[0]?.municipality_id ?? null);
-  }, []);
 
   const reload = useCallback(async () => {
     const user = await fetchCurrentSession();
     if (user) {
       setState({ kind: "authenticated", user });
-      pickDefaultMunicipality(user);
     } else {
       setState({ kind: "anonymous" });
-      setActiveMunicipalityIdState(null);
     }
-  }, [ pickDefaultMunicipality ]);
+  }, []);
 
   useEffect(() => {
     void reload();
@@ -70,9 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setState({ kind: "mfa_required", session_id: res.session_id, email_address });
     } else {
       setState({ kind: "authenticated", user: res });
-      pickDefaultMunicipality(res);
     }
-  }, [ pickDefaultMunicipality ]);
+  }, []);
 
   const challengeTotp = useCallback(async (code: string) => {
     if (state.kind !== "mfa_required") {
@@ -80,8 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const user = await apiChallenge(state.session_id, code);
     setState({ kind: "authenticated", user });
-    pickDefaultMunicipality(user);
-  }, [ state, pickDefaultMunicipality ]);
+  }, [ state ]);
 
   const cancelMfa = useCallback(() => {
     setState({ kind: "anonymous" });
@@ -89,12 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await apiLogout();
-    setActiveMunicipalityIdState(null);
     setState({ kind: "anonymous" });
-  }, []);
-
-  const setActiveMunicipality = useCallback((id: string | null) => {
-    setActiveMunicipalityIdState(id);
   }, []);
 
   const value = useMemo<AuthValue>(() => ({
@@ -104,10 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     challengeTotp,
     cancelMfa,
     logout,
-    reload,
-    setActiveMunicipality,
-    activeMunicipalityId
-  }), [ state, login, challengeTotp, cancelMfa, logout, reload, setActiveMunicipality, activeMunicipalityId ]);
+    reload
+  }), [ state, login, challengeTotp, cancelMfa, logout, reload ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

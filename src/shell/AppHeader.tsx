@@ -17,7 +17,9 @@ import { useAuth } from "../lib/auth";
 interface Props {
   active: ModuleId;
   onSelect: (id: ModuleId) => void;
-  alerts: { active: Alert[]; limitations: Alert[] };
+  // Plano 6 (fix wave): opcional — o shell não chama mais useAlerts() em
+  // toda tela (useQueues/useHealth são city-scoped e 404 em admin.*).
+  alerts?: { active: Alert[]; limitations: Alert[] };
 }
 
 export function AppHeader({ active, onSelect, alerts }: Props) {
@@ -115,8 +117,8 @@ export function AppHeader({ active, onSelect, alerts }: Props) {
           />
           <VerticalDivider height={22} />
           <NotificationCenter
-            active={alerts.active}
-            limitations={alerts.limitations}
+            active={alerts?.active ?? []}
+            limitations={alerts?.limitations ?? []}
             onNavigate={onSelect}
           />
           <LiveClock />

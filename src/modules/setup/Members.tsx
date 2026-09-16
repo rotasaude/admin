@@ -13,7 +13,7 @@ const ROLES = [
 ];
 
 export function Members() {
-  const { user, activeMunicipalityId } = useAuth();
+  const { user } = useAuth();
   const qc = useQueryClient();
   const [ inviteEmail, setInviteEmail ] = useState("");
   const [ inviteRole, setInviteRole ] = useState<string>("municipal_admin");
@@ -21,7 +21,9 @@ export function Members() {
   const [ inviteBusy, setInviteBusy ] = useState(false);
   const [ inviteError, setInviteError ] = useState<string | null>(null);
 
-  const muniId = activeMunicipalityId || undefined;
+  // Plano 6 (fix wave): AuthContext não expõe mais município ativo (não
+  // advertido na navegação; este módulo fica órfão até ter host próprio).
+  const muniId = undefined;
 
   const list = useQuery({
     queryKey: [ "memberships", muniId ],

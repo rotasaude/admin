@@ -1,12 +1,15 @@
-// AppShell: estado de escopo (período + município), módulo ativo, e
-// montagem da view ativa. useAlerts() consome /queues + /health para
-// alimentar o NotificationCenter.
+// AppShell: estado de escopo (período + município) e módulo ativo.
+//
+// Plano 6 (fix wave, Important #1): o console (admin.*) não abre mais em
+// "Visão geral" (city-scoped, 404 em admin.*) — abre em "Cidades", o único
+// módulo que responde nesse host. useAlerts() (que consumia /queues e
+// /health, ambos city-scoped) também saiu daqui; ver AppHeader (prop
+// `alerts` agora opcional).
 
 import { useState } from "react";
 import { ScopeContext, type PeriodKey } from "./lib/scope";
 import { AppHeader } from "./shell/AppHeader";
 import type { ModuleId } from "./shell/modules";
-import { useAlerts } from "./hooks/useAlerts";
 import { Overview } from "./modules/Overview";
 import { Ingestion } from "./modules/Ingestion";
 import { Conversations } from "./modules/Conversations";
@@ -21,24 +24,22 @@ import { ProvisionMunicipality } from "./modules/setup/ProvisionMunicipality";
 import { Members } from "./modules/setup/Members";
 import { MfaEnroll } from "./modules/setup/MfaEnroll";
 import { Cities } from "./modules/Cities";
-import { useAuth } from "./lib/auth";
 
 export function App() {
   const [ period, setPeriod ] = useState<PeriodKey>("7d");
-  const { activeMunicipalityId } = useAuth();
-  const [ active, setActive ] = useState<ModuleId>("overview");
+  const [ active, setActive ] = useState<ModuleId>("cities");
 
   // O ScopeContext herdado espera setMunicipality como string | "all".
-  // O switch real de cidade agora vive em AuthContext (com headers HTTP).
-  // Aqui só refletimos pro shell legado.
-  const muniForLegacy = activeMunicipalityId || "default";
+  // O console não tem mais noção de município ativo (era plumbing inerte,
+  // Plano 6 fix wave); o switch real de cidade é o grant de 60s, não um
+  // estado de sessão. Aqui só refletimos pro shell legado.
   return (
     <ScopeContext.Provider
       value={{
         period,
-        municipalityId: muniForLegacy,
+        municipalityId: "default",
         setPeriod,
-        setMunicipality: () => { /* gerido pelo AuthContext */ }
+        setMunicipality: () => { /* console não tem município ativo */ }
       }}
     >
       <ShellInner active={active} setActive={setActive} />
@@ -47,10 +48,9 @@ export function App() {
 }
 
 function ShellInner({ active, setActive }: { active: ModuleId; setActive: (id: ModuleId) => void }) {
-  const alerts = useAlerts();
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <AppHeader active={active} onSelect={setActive} alerts={alerts} />
+      <AppHeader active={active} onSelect={setActive} />
       <main style={{ padding: "22px 24px 48px", flex: 1, width: "100%" }}>
         {renderModule(active, setActive)}
       </main>
