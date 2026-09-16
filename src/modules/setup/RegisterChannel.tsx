@@ -7,8 +7,10 @@
 
 import { useState, type FormEvent } from "react";
 import { useCities } from "../../hooks/useCities";
-import { registerCityChannel, ApiError, type RegisterChannelPayload } from "../../lib/api";
+import { registerCityChannel, type RegisterChannelPayload } from "../../lib/api";
+import { describeChannelError } from "../../lib/channels";
 import { PageHeader } from "../../components/PageHeader";
+import { EmptyState } from "../../components/EmptyState";
 
 const EMPTY: RegisterChannelPayload = {
   phone_number_id: "", waba_id: "", display_phone_number: "", access_token: ""
@@ -41,7 +43,7 @@ export function RegisterChannel() {
       setRegistered(true);
       setForm(EMPTY);
     } catch (err) {
-      setApiError(describeError(err));
+      setApiError(describeChannelError(err));
     } finally {
       setBusy(false);
     }
@@ -58,6 +60,20 @@ export function RegisterChannel() {
           <button type="button" onClick={() => setRegistered(false)} style={btnPrimary(false)}>
             Registrar outro canal
           </button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!isLoading && activeCities.length === 0) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <PageHeader title="Registrar canal" sub="setup" />
+        <Card>
+          <EmptyState
+            title="Nenhuma cidade ativa"
+            sub="um canal só pode ser registrado numa cidade ativa — cidades ainda em provisionamento aparecem aqui quando terminarem"
+          />
         </Card>
       </div>
     );
@@ -134,18 +150,6 @@ export function RegisterChannel() {
       </Card>
     </div>
   );
-}
-
-function describeError(err: unknown): string {
-  if (err instanceof ApiError) {
-    if (err.status === 404) return "cidade não encontrada";
-    if (err.status === 422) {
-      const body = err.body as { error?: string; message?: string } | undefined;
-      if (body?.error === "city_not_servable") return "a cidade não está ativa";
-      return body?.message || "dados inválidos";
-    }
-  }
-  return (err as Error).message;
 }
 
 function Card({ children }: { children: React.ReactNode }) {
