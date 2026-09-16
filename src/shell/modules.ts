@@ -13,8 +13,6 @@ export type ModuleId =
   | "queues"
   | "health"
   // Setup multi-tenant (ADR-0023/0024)
-  | "setup_provision"
-  | "setup_members"
   | "setup_mfa"
   | "cities";
 
@@ -31,13 +29,13 @@ export interface NavGroupDef {
   items: NavItem[];
 }
 
-// Plano 6 (fix wave, Important #1): o console (admin.*) só responde às rotas
-// do PlatformConsoleHost. Os demais módulos (Visão geral, Ingestão,
-// Conversas, Consentimento, Triagens, Classificação, Protocolos, Eventos,
-// Filas, Saúde, Memberships, Provisionar cidade, MFA) são city-scoped
-// (CityResolution#within_city) e 404 em admin.* — confirmado por requisição
-// direta. Eles ficam fora da navegação até terem um host onde respondam;
-// os arquivos dos módulos não foram removidos.
+// Plano 6/8: o console (admin.*) só responde às rotas do PlatformConsoleHost.
+// Os módulos city-scoped (Visão geral, Ingestão, Conversas, Consentimento,
+// Triagens, Classificação, Protocolos, Eventos, Filas, Saúde) 404 em admin.* e
+// ficam fora da navegação; os arquivos seguem no repo. As telas de membership e
+// de provisionamento antigo foram REMOVIDAS no Plano 8: membership é operação
+// dentro da cidade (entre pela cidade, via grant) e o provisionamento passou a
+// falar com POST /cities.
 export const NAV_GROUPS: NavGroupDef[] = [
   {
     label: "Setup",

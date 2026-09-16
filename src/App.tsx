@@ -20,8 +20,6 @@ import { Protocols } from "./modules/Protocols";
 import { Queues } from "./modules/Queues";
 import { Events } from "./modules/Events";
 import { Health } from "./modules/Health";
-import { ProvisionMunicipality } from "./modules/setup/ProvisionMunicipality";
-import { Members } from "./modules/setup/Members";
 import { MfaEnroll } from "./modules/setup/MfaEnroll";
 import { Cities } from "./modules/Cities";
 
@@ -70,8 +68,6 @@ function renderModule(id: ModuleId, onNavigate: (id: ModuleId) => void) {
     case "queues":         return <Queues />;
     case "events":         return <Events />;
     case "health":         return <Health />;
-    case "setup_provision": return <ProvisionMunicipality />;
-    case "setup_members":   return <Members />;
     case "setup_mfa":       return <MfaEnroll />;
     case "cities": return <Cities />;
   }

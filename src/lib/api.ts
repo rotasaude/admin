@@ -151,96 +151,10 @@ export async function mfaStepUp(code: string): Promise<{ ok: true }> {
 
 // ─── Setup endpoints (write) ──────────────────────────────────────────────────
 
-export interface ProvisionPayload {
-  name: string;
-  slug: string;
-  ibge_code: string;
-  uf?: string;
-  channel: {
-    phone_number_id: string;
-    waba_id: string;
-    display_phone_number: string;
-    access_token: string;
-  };
-  admin_email: string;
-  terms: { version?: string; body: string };
-  alert: { channel: string; destination: string; escalation_order?: number }[];
-  template?: { name: string; definition: unknown };
-}
-
-export interface ProvisionResult {
-  id: string;
-  name: string;
-  slug: string;
-  invitation: {
-    id: string;
-    email: string;
-    token: string;
-    expires_at: string;
-    accept_url: string;
-  } | null;
-}
-
-export async function setupProvisionMunicipality(payload: ProvisionPayload): Promise<ProvisionResult> {
-  return jsonFetch<ProvisionResult>(`${SETUP_BASE}/municipalities`, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  });
-}
-
-export interface InvitePayload {
-  email: string;
-  role: string;
-  municipality_id?: string;
-}
-
-export interface InviteResult {
-  id: string;
-  email: string;
-  role: string;
-  expires_at: string;
-}
-
-export async function setupInviteMember(payload: InvitePayload): Promise<InviteResult> {
-  return jsonFetch<InviteResult>(`${SETUP_BASE}/invitations`, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  });
-}
-
 export async function setupAcceptInvitation(token: string, password: string): Promise<SessionUser> {
   return jsonFetch<SessionUser>(`${SETUP_BASE}/accept_invitation`, {
     method: "POST",
     body: JSON.stringify({ token, password })
-  });
-}
-
-export interface MembershipRow {
-  id: string;
-  user: { id: string; email_address: string };
-  municipality_id: string;
-  role: string;
-  granted_at: string;
-}
-
-export async function setupListMemberships(municipality_id?: string): Promise<MembershipRow[]> {
-  const url = new URL(`${SETUP_BASE}/memberships`, window.location.origin);
-  if (municipality_id) url.searchParams.set("municipality_id", municipality_id);
-  const res = await jsonFetch<{ data: MembershipRow[] }>(url.toString());
-  return res.data;
-}
-
-export async function setupRevokeMembership(id: string): Promise<{ id: string; revoked_at: string }> {
-  return jsonFetch<{ id: string; revoked_at: string }>(`${SETUP_BASE}/memberships/${id}/revoke`, {
-    method: "POST",
-    body: JSON.stringify({})
-  });
-}
-
-export async function setupDeactivateUser(id: string): Promise<{ id: string; deactivated_at: string }> {
-  return jsonFetch<{ id: string; deactivated_at: string }>(`${SETUP_BASE}/users/${id}/deactivate`, {
-    method: "POST",
-    body: JSON.stringify({})
   });
 }
 
