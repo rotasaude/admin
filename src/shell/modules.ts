@@ -15,7 +15,8 @@ export type ModuleId =
   // Setup multi-tenant (ADR-0023/0024)
   | "setup_mfa"
   | "cities"
-  | "provision_city";
+  | "provision_city"
+  | "register_channel";
 
 export interface NavItem {
   id: ModuleId;
@@ -51,6 +52,12 @@ export const NAV_GROUPS: NavGroupDef[] = [
         id: "provision_city",
         label: "Provisionar cidade",
         icon: "＋",
+        visible: (u) => u.operator
+      },
+      {
+        id: "register_channel",
+        label: "Registrar canal",
+        icon: "☏",
         visible: (u) => u.operator
       }
     ]

@@ -186,3 +186,18 @@ export async function createCity(payload: ProvisionCityPayload): Promise<CreateC
     body: JSON.stringify(payload)
   });
 }
+
+// POST /cities/:id/channel — registra o canal WhatsApp de uma cidade ativa
+// (Plano 8). O access_token é segredo: nunca volta na resposta.
+export interface RegisterChannelPayload {
+  phone_number_id: string;
+  waba_id: string;
+  display_phone_number: string;
+  access_token: string;
+}
+
+export async function registerCityChannel(cityId: string, payload: RegisterChannelPayload) {
+  return jsonFetch<{ id: string; phone_number_id: string; display_phone_number: string; active: boolean }>(
+    `/cities/${cityId}/channel`, { method: "POST", body: JSON.stringify(payload) }
+  );
+}
