@@ -25,7 +25,9 @@ export function Protocols() {
   if (!data) return <Wrap><EmptyState title="sem dados" /></Wrap>;
 
   const list = data.data.list;
-  const published = list.filter((p) => p.status === "published").length;
+  // A leitura agora distingue "active" (em uso) de "published" (apenas
+  // publicada, ainda não ativada); as duas contam como publicadas aqui.
+  const published = list.filter((p) => p.status === "published" || p.status === "active").length;
   const fourEyesCollapsed = list.filter((p) => p.fourEyes === false).length;
 
   return (
