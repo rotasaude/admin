@@ -15,7 +15,13 @@
     "resolveJsonModule": true,
     "verbatimModuleSyntax": false,
     "allowImportingTsExtensions": false,
-    "useDefineForClassFields": true
+    "useDefineForClassFields": true,
+    // Sem isto, `tsc -b` (o `npm run build`) emite um .js ao lado de cada
+    // .ts/.tsx dentro de src/. Eles são ignorados pelo git, mas o vitest os
+    // DESCOBRE: depois de um build, cada teste roda duas vezes e um artefato
+    // velho pode passar no lugar do fonte quebrado. dashboard e maintenance
+    // já tinham esta linha; o admin era o único fora do padrão.
+    "noEmit": true
   },
   "include": ["src", "vite.config.ts"]
 }
