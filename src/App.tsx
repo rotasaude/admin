@@ -71,6 +71,7 @@ function renderModule(id: ModuleId, onNavigate: (id: ModuleId) => void) {
     case "queues":         return <Queues />;
     case "events":         return <Events />;
     case "health":         return <Health />;
+    // Sem item de navegação: MfaEnroll não funciona no admin.* (ver o arquivo).
     case "setup_mfa":       return <MfaEnroll />;
     case "cities": return <Cities />;
     case "provision_city": return <ProvisionCity onNavigate={onNavigate} />;

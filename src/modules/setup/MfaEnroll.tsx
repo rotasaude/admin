@@ -1,3 +1,9 @@
+// SEM USO NO HOST admin.*: /mfa/enroll e /mfa/confirm são rotas da CIDADE e o
+// console de plataforma responde 404 a elas. Operador nasce com TOTP já
+// cadastrado pelo rake operator:create; sem TOTP, POST /session devolve 403
+// mfa_enrollment_required e a tela de Login explica o caminho. Nenhum item de
+// navegação leva a "setup_mfa"; o arquivo fica no repo, não é apagado.
+//
 // Enrollment de MFA — primeira vez do user (esp. operador).
 // 1. POST /mfa/enroll → recebe otpauth_uri + 10 recovery_codes (mostra UMA VEZ).
 // 2. User escaneia QR no autenticador, digita primeiro código.
