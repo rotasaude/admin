@@ -3,13 +3,16 @@
 
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../../lib/auth";
-import { ApiError } from "../../lib/api";
+import { ApiError, apiErrorCode } from "../../lib/api";
 
 export function MfaChallenge() {
   const { state, challengeTotp, cancelMfa } = useAuth();
   const [ code, setCode ] = useState("");
   const [ submitting, setSubmitting ] = useState(false);
   const [ error, setError ] = useState<string | null>(null);
+  // A API apagou a sessão pendente (erros demais ou janela vencida): só resta
+  // voltar ao passo da senha.
+  const [ ended, setEnded ] = useState(false);
 
   if (state.kind !== "mfa_required") return null;
 
@@ -20,7 +23,16 @@ export function MfaChallenge() {
     try {
       await challengeTotp(code.replace(/\s+/g, ""));
     } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
+      const code = apiErrorCode(err);
+      if (err instanceof ApiError && err.status === 401 && code === "too_many_attempts") {
+        setEnded(true);
+        setError("Muitos códigos errados. Por segurança, entre de novo com e-mail e senha.");
+      } else if (err instanceof ApiError && err.status === 401 && code === "invalid_session") {
+        setEnded(true);
+        setError("Sua sessão de login expirou. Entre de novo com e-mail e senha.");
+      } else if (err instanceof ApiError && err.status === 429) {
+        setError("Muitas tentativas. Tente novamente em alguns minutos.");
+      } else if (err instanceof ApiError && err.status === 401) {
         setError("Código inválido. Verifique seu autenticador.");
       } else {
         setError((err as Error).message || "Falha ao verificar.");
@@ -38,18 +50,25 @@ export function MfaChallenge() {
           Como operador, você precisa do código TOTP do seu autenticador para entrar.
           Aceita também um recovery code se você perdeu o dispositivo.
         </p>
-        <Field
-          label="Código"
-          value={code}
-          onChange={setCode}
-          autoComplete="one-time-code"
-          required
-        />
+        {!ended && (
+          <Field
+            label="Código"
+            id="mfa-code"
+            value={code}
+            onChange={setCode}
+            autoComplete="one-time-code"
+            required
+          />
+        )}
         {error && <ErrorBox>{error}</ErrorBox>}
-        <button type="submit" disabled={submitting || !code} style={btnPrimary(submitting || !code)}>
-          {submitting ? "Verificando…" : "Verificar"}
+        {!ended && (
+          <button type="submit" disabled={submitting || !code} style={btnPrimary(submitting || !code)}>
+            {submitting ? "Verificando…" : "Verificar"}
+          </button>
+        )}
+        <button type="button" onClick={cancelMfa} style={ended ? btnPrimary(false) : btnGhost}>
+          {ended ? "Voltar ao login" : "Cancelar"}
         </button>
-        <button type="button" onClick={cancelMfa} style={btnGhost}>Cancelar</button>
       </form>
     </CenteredCard>
   );
@@ -67,9 +86,10 @@ function Header({ email }: { email: string }) {
 }
 
 function Field({
-  label, value, onChange, required, autoComplete
+  label, id, value, onChange, required, autoComplete
 }: {
   label: string;
+  id: string;
   value: string;
   onChange: (v: string) => void;
   required?: boolean;
@@ -77,10 +97,11 @@ function Field({
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <label className="mono" style={{ fontSize: 10.5, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: 0.6 }}>
+      <label htmlFor={id} className="mono" style={{ fontSize: 10.5, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: 0.6 }}>
         {label}
       </label>
       <input
+        id={id}
         type="text"
         value={value}
         required={required}

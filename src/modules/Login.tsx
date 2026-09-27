@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../lib/auth";
-import { ApiError } from "../lib/api";
+import { ApiError, apiErrorCode } from "../lib/api";
 
 export function Login() {
   const { login } = useAuth();
@@ -18,7 +18,14 @@ export function Login() {
     try {
       await login(email, password);
     } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
+      if (err instanceof ApiError && err.status === 403 && apiErrorCode(err) === "mfa_enrollment_required") {
+        // Operador sem TOTP: o admin.* não tem tela de cadastro de MFA; o acesso
+        // nasce pelo rake operator:create, que já cadastra o TOTP.
+        setError(
+          "Sua conta de operador ainda não tem MFA cadastrado, e não é possível cadastrá-lo por aqui. " +
+          "Peça a quem administra a plataforma para recriar seu acesso com operator:create."
+        );
+      } else if (err instanceof ApiError && err.status === 401) {
         setError("Credenciais inválidas.");
       } else if (err instanceof ApiError && err.status === 429) {
         setError("Muitas tentativas. Tente novamente em alguns minutos.");

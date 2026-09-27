@@ -32,6 +32,13 @@ export class ApiError extends Error {
   }
 }
 
+// Código de erro do corpo JSON ({ error: "..." }) de uma ApiError, se houver.
+export function apiErrorCode(err: unknown): string | undefined {
+  if (!(err instanceof ApiError)) return undefined;
+  const body = err.body as { error?: unknown } | null;
+  return body && typeof body === "object" && typeof body.error === "string" ? body.error : undefined;
+}
+
 export interface Membership {
   municipality_id: string;
   municipality_name: string;
