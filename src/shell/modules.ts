@@ -16,7 +16,8 @@ export type ModuleId =
   | "setup_mfa"
   | "cities"
   | "provision_city"
-  | "register_channel";
+  | "register_channel"
+  | "unknown_channels";
 
 export interface NavItem {
   id: ModuleId;
@@ -58,6 +59,12 @@ export const NAV_GROUPS: NavGroupDef[] = [
         id: "register_channel",
         label: "Registrar canal",
         icon: "☏",
+        visible: (u) => u.operator
+      },
+      {
+        id: "unknown_channels",
+        label: "Números desconhecidos",
+        icon: "?",
         visible: (u) => u.operator
       }
     ]

@@ -201,3 +201,19 @@ export async function registerCityChannel(cityId: string, payload: RegisterChann
     `/cities/${cityId}/channel`, { method: "POST", body: JSON.stringify(payload) }
   );
 }
+
+// GET /unknown_channels — phone_number_ids que chegaram ao webhook do WhatsApp
+// sem canal registrado (PlatformConsoleHost, operador). Só leitura; o servidor
+// já ordena por last_seen_at desc e corta em 100.
+export interface UnknownChannel {
+  phone_number_id: string;
+  display_phone_number: string | null;
+  hits: number;
+  first_seen_at: string;
+  last_seen_at: string;
+}
+
+export async function listUnknownChannels(): Promise<UnknownChannel[]> {
+  const res = await jsonFetch<{ unknown_channels: UnknownChannel[] }>("/unknown_channels");
+  return res.unknown_channels;
+}

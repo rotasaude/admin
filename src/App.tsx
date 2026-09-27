@@ -24,6 +24,7 @@ import { MfaEnroll } from "./modules/setup/MfaEnroll";
 import { Cities } from "./modules/Cities";
 import { ProvisionCity } from "./modules/setup/ProvisionCity";
 import { RegisterChannel } from "./modules/setup/RegisterChannel";
+import { UnknownChannels } from "./modules/setup/UnknownChannels";
 
 export function App() {
   const [ period, setPeriod ] = useState<PeriodKey>("7d");
@@ -74,5 +75,6 @@ function renderModule(id: ModuleId, onNavigate: (id: ModuleId) => void) {
     case "cities": return <Cities />;
     case "provision_city": return <ProvisionCity onNavigate={onNavigate} />;
     case "register_channel": return <RegisterChannel />;
+    case "unknown_channels": return <UnknownChannels />;
   }
 }

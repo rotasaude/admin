@@ -11,6 +11,7 @@ import react from "@vitejs/plugin-react";
 //   /setup/*                        → SetupController (provision, invite, etc)
 //   /admin/api/*                    → Admin::Api::* (read-only)
 //   /cities/*, /city_grants/*       → gestão de cidades e grants (Task 4)
+//   /unknown_channels               → números sem canal registrado (só leitura)
 const proxy = (target: string) => ({ target, changeOrigin: false });
 const TARGET = process.env.VITE_API_PROXY_TARGET || "http://localhost:3030";
 
@@ -27,7 +28,8 @@ export default defineConfig({
       "/mfa":       proxy(TARGET),
       "/setup":     proxy(TARGET),
       "/cities":    proxy(TARGET),
-      "/city_grants": proxy(TARGET)
+      "/city_grants": proxy(TARGET),
+      "/unknown_channels": proxy(TARGET)
     }
   }
 });
