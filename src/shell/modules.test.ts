@@ -14,3 +14,17 @@ describe("NAV_GROUPS", () => {
     expect(item?.visible?.({ operator: false, memberships: [ { role: "admin" } ] })).toBe(false);
   });
 });
+
+describe("NAV_GROUPS analytics", () => {
+  const group = NAV_GROUPS.find((g) => g.label === "Analytics");
+  const item = group?.items.find((i) => i.id === "city_analytics");
+
+  it("lists Analytics das cidades in its own group", () => {
+    expect(item?.label).toBe("Analytics das cidades");
+  });
+
+  it("shows it to operators only", () => {
+    expect(item?.visible?.({ operator: true, memberships: [] })).toBe(true);
+    expect(item?.visible?.({ operator: false, memberships: [ { role: "municipal_admin" } ] })).toBe(false);
+  });
+});

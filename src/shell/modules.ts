@@ -17,7 +17,9 @@ export type ModuleId =
   | "cities"
   | "provision_city"
   | "register_channel"
-  | "unknown_channels";
+  | "unknown_channels"
+  // Módulo 14 (ADR 0025)
+  | "city_analytics";
 
 export interface NavItem {
   id: ModuleId;
@@ -65,6 +67,17 @@ export const NAV_GROUPS: NavGroupDef[] = [
         id: "unknown_channels",
         label: "Números desconhecidos",
         icon: "?",
+        visible: (u) => u.operator
+      }
+    ]
+  },
+  {
+    label: "Analytics",
+    items: [
+      {
+        id: "city_analytics",
+        label: "Analytics das cidades",
+        icon: "◔",
         visible: (u) => u.operator
       }
     ]
