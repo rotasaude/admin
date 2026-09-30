@@ -1,14 +1,15 @@
 // Sparkline — linha + área. Recharts AreaChart sem eixos.
+// `null` é lacuna (semana oculta ou sem dado no Analytics), nunca zero.
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 
 interface Props {
-  data: number[];
+  data: (number | null)[];
   color?: string;
   h?: number;
 }
 
 export function Sparkline({ data, color = "var(--accent)", h = 32 }: Props) {
-  if (!data || data.length === 0) return <div style={{ height: h }} />;
+  if (!data || data.every((v) => v === null)) return <div style={{ height: h }} />;
   const series = data.map((v, i) => ({ i, v }));
   return (
     <div style={{ width: "100%", height: h }}>
@@ -26,6 +27,7 @@ export function Sparkline({ data, color = "var(--accent)", h = 32 }: Props) {
             stroke={color}
             strokeWidth={1.4}
             fill="url(#spark-fill)"
+            connectNulls={false}
             isAnimationActive={false}
           />
         </AreaChart>
