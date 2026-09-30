@@ -152,7 +152,7 @@ describe("CityAnalytics", () => {
     renderScreen(<CityAnalytics />);
 
     expect(await screen.findByText("Nenhuma cidade publicou indicadores ainda.")).toBeTruthy();
-    expect(screen.getByText(/consolidação roda todo dia/)).toBeTruthy();
+    expect(screen.getByText(/consolidação roda todo dia às 2h30 \(America\/Sao_Paulo\)/)).toBeTruthy();
     expect(screen.queryByRole("table")).toBeNull();
     expect(screen.queryByLabelText("Semana")).toBeNull();
   });

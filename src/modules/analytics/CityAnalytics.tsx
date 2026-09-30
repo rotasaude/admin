@@ -64,7 +64,7 @@ export function CityAnalytics() {
       {data && data.cities.length > 0 && !hasAnyPublication(data) && (
         <EmptyState
           title="Nenhuma cidade publicou indicadores ainda."
-          sub="a consolidação roda todo dia às 2h (America/Sao_Paulo); no primeiro deploy, rode city:analytics:rebuild:all"
+          sub="a consolidação roda todo dia às 2h30 (America/Sao_Paulo); no primeiro deploy, rode city:analytics:rebuild:all"
         />
       )}
 
