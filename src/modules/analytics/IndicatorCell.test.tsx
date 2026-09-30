@@ -48,4 +48,16 @@ describe("IndicatorCell", () => {
     render(<IndicatorCell indicator="triages_started" values={undefined} weekIndex={-1} weeks={0} />);
     expect(screen.getByText("sem dado")).toBeTruthy();
   });
+
+  it("the sem dado title is rate-aware", () => {
+    render(
+      <>
+        <IndicatorCell indicator="triages_started" values={[ null ]} weekIndex={0} weeks={1} />
+        <IndicatorCell indicator="no_show_pct" values={[ null ]} weekIndex={0} weeks={1} />
+      </>
+    );
+    const [count, rate] = screen.getAllByText("sem dado");
+    expect(count.getAttribute("title")).toBe("a cidade não publicou este indicador nesta semana");
+    expect(rate.getAttribute("title")).toMatch(/denominador/);
+  });
 });

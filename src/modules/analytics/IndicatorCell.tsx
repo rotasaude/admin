@@ -3,7 +3,7 @@
 // "oculto" e "sem dado" têm texto, cor e título próprios — nunca "0".
 
 import type { IndicatorValue } from "../../lib/api";
-import { cellView, trendPoints, type CellKind } from "../../lib/cityAnalytics";
+import { cellView, isRate, trendPoints, type CellKind } from "../../lib/cityAnalytics";
 import { Sparkline } from "../../components/Sparkline";
 
 interface Props {
@@ -13,11 +13,15 @@ interface Props {
   weeks: number;
 }
 
-const TITLES: Record<CellKind, string | undefined> = {
-  value: undefined,
-  hidden: "contagem de 1 a 4, suprimida na cidade antes de sair dela",
-  missing: "a cidade não publicou este indicador nesta semana"
-};
+const HIDDEN_TITLE = "contagem de 1 a 4, suprimida na cidade antes de sair dela";
+const MISSING_TITLE = "a cidade não publicou este indicador nesta semana";
+const MISSING_RATE_TITLE = `${MISSING_TITLE}, ou a taxa não tinha denominador`;
+
+function titleFor(kind: CellKind, indicator: string): string | undefined {
+  if (kind === "hidden") return HIDDEN_TITLE;
+  if (kind === "missing") return isRate(indicator) ? MISSING_RATE_TITLE : MISSING_TITLE;
+  return undefined;
+}
 
 const COLORS: Record<CellKind, string> = {
   value: "var(--ink)",
@@ -31,7 +35,7 @@ export function IndicatorCell({ indicator, values, weekIndex, weeks }: Props) {
     <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
       <span
         data-kind={view.kind}
-        title={TITLES[view.kind]}
+        title={titleFor(view.kind, indicator)}
         className="mono"
         style={{
           fontSize: view.kind === "value" ? 12.5 : 11,
