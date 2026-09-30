@@ -12,6 +12,7 @@ import react from "@vitejs/plugin-react";
 //   /admin/api/*                    → Admin::Api::* (read-only)
 //   /cities/*, /city_grants/*       → gestão de cidades e grants (Task 4)
 //   /unknown_channels               → números sem canal registrado (só leitura)
+//   /city_analytics                 → indicadores publicados pelas cidades (só leitura)
 const proxy = (target: string) => ({ target, changeOrigin: false });
 const TARGET = process.env.VITE_API_PROXY_TARGET || "http://localhost:3030";
 
@@ -29,7 +30,8 @@ export default defineConfig({
       "/setup":     proxy(TARGET),
       "/cities":    proxy(TARGET),
       "/city_grants": proxy(TARGET),
-      "/unknown_channels": proxy(TARGET)
+      "/unknown_channels": proxy(TARGET),
+      "/city_analytics": proxy(TARGET)
     }
   }
 });

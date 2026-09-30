@@ -29,6 +29,12 @@ O que ele faz hoje:
   do 1º admin municipal vai por e-mail; o token nunca volta para o console.
 - **Registrar canal**: `POST /cities/:id/channel`, canal WhatsApp de uma cidade
   ativa. O `access_token` é segredo e nunca volta na resposta.
+- **Analytics das cidades**: `GET /city_analytics`, só leitura. Seis
+  indicadores semanais da cidade inteira que cada cidade publica na
+  plataforma (ADR 0025): triagens iniciadas e concluídas, atendimentos
+  encerrados, espera de até 30 min, faltas e "saiu sem atendimento" (%).
+  Contagem de 1 a 4 chega como "oculto"; semana sem publicação, "sem dado".
+  O console nunca vê bairro, unidade, protocolo ou pergunta.
 
 Gestão de membros e papéis **não** é feita aqui: é operação dentro da cidade
 (entre pela cidade, via grant, e use o dashboard).
@@ -78,8 +84,7 @@ npm install
 npm run dev        # porta 5173; o compose publica em 5174
 ```
 
-O Vite proxa `/admin/api`, `/session`, `/mfa`, `/setup`, `/cities` e
-`/city_grants` para `VITE_API_PROXY_TARGET` **sem reescrever o Host**
+O Vite proxa `/admin/api`, `/session`, `/mfa`, `/setup`, `/cities`, `/city_grants`, `/unknown_channels` e `/city_analytics` para `VITE_API_PROXY_TARGET` **sem reescrever o Host**
 (`changeOrigin: false`).
 
 ### Variáveis
@@ -98,7 +103,7 @@ src/
 ├── App.tsx          ← AppShell; abre em "Cidades"
 ├── shell/           ← AppHeader, NavDropdown, NotificationCenter, modules.ts (navegação)
 ├── lib/
-│   ├── api.ts       ← fetch, sessão, MFA, /cities, /city_grants
+│   ├── api.ts       ← fetch, sessão, MFA, /cities, /city_grants, /city_analytics
 │   ├── auth.tsx     ← AuthContext (loading/anonymous/mfa_required/authenticated)
 │   ├── cities.ts    ← ordenação do catálogo + enterCity (grant → redirect)
 │   ├── provisioning.ts, channels.ts ← validação dos formulários de setup

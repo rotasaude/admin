@@ -224,3 +224,35 @@ export async function listUnknownChannels(): Promise<UnknownChannel[]> {
   const res = await jsonFetch<{ unknown_channels: UnknownChannel[] }>("/unknown_channels");
   return res.unknown_channels;
 }
+
+// GET /city_analytics (módulo 14, F-14.8) — indicadores semanais que cada
+// cidade publicou na plataforma (PlatformConsoleHost, operador). O api lê só
+// city_analytics_indicators e cities: nunca abre banco de cidade (ADR 0025).
+// Sem from/to, o servidor devolve as 12 semanas que terminam na semana
+// anterior à atual — esta tela não manda período, o seletor escolhe entre
+// as semanas que vieram.
+//
+// values[indicator] é alinhado com weeks: número (contagem inteira ou
+// percentual com 1 casa), { suppressed: true } (1 a 4, oculto na origem) ou
+// null (a cidade não publicou o indicador naquela semana).
+export type IndicatorValue = number | { suppressed: true } | null;
+
+export interface CityAnalyticsCity {
+  id: string;
+  slug: string;
+  name: string;
+  uf: string | null;
+  last_published_at: string | null;
+  values: Record<string, IndicatorValue[]>;
+}
+
+export interface CityAnalyticsData {
+  weeks: string[];
+  indicators: string[];
+  cities: CityAnalyticsCity[];
+}
+
+export async function listCityAnalytics(): Promise<CityAnalyticsData> {
+  const res = await jsonFetch<{ data: CityAnalyticsData }>("/city_analytics");
+  return res.data;
+}
