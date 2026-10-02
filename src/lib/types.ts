@@ -185,5 +185,7 @@ export interface CityRow {
   uf: string | null;
   status: string;
   schema_version: string | null;
+  // Fuso IANA da cidade (api#27); ausente em api antigo.
+  time_zone?: string;
   created_at: string;
 }

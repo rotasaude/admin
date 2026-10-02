@@ -39,6 +39,7 @@ export function Cities() {
         </span>
       ) },
     { label: "Schema", w: "0.7fr", render: (c) => <span className="mono">{c.schema_version ?? "—"}</span> },
+    { label: "Fuso", w: "1fr", render: (c) => <span className="mono">{c.time_zone ?? "—"}</span> },
     { label: "Criada", w: "1fr", render: (c) => c.created_at ? fmtTime(c.created_at) : "—" },
     { label: "", w: "0.7fr", align: "right", render: (c) => (
         <button
