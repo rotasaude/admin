@@ -8,12 +8,14 @@
 import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createCity, ApiError } from "../../lib/api";
-import { validateProvisionForm, type ProvisionCityPayload } from "../../lib/provisioning";
+import {
+  DEFAULT_TIME_ZONE, TIME_ZONES, suggestedTimeZone, validateProvisionForm, type ProvisionCityPayload
+} from "../../lib/provisioning";
 import { PageHeader } from "../../components/PageHeader";
 import type { ModuleId } from "../../shell/modules";
 
 const EMPTY: ProvisionCityPayload = {
-  slug: "", name: "", uf: "", ibge_code: "", admin_email: "", alert_email: ""
+  slug: "", name: "", uf: "", ibge_code: "", admin_email: "", alert_email: "", time_zone: DEFAULT_TIME_ZONE
 };
 
 interface Props {
@@ -27,6 +29,8 @@ export function ProvisionCity({ onNavigate }: Props) {
   const [ apiError, setApiError ] = useState<string | null>(null);
   const [ busy, setBusy ] = useState(false);
   const [ createdId, setCreatedId ] = useState<string | null>(null);
+  // Enquanto o operador não escolhe, o fuso acompanha a UF digitada.
+  const [ zoneTouched, setZoneTouched ] = useState(false);
 
   function set<K extends keyof ProvisionCityPayload>(key: K, value: string) {
     setForm((f) => ({ ...f, [ key ]: value }));
@@ -97,7 +101,11 @@ export function ProvisionCity({ onNavigate }: Props) {
             <Field label="UF" hint="duas letras maiúsculas" error={fieldErrors.includes("uf")}>
               <input
                 value={form.uf}
-                onChange={(e) => set("uf", e.target.value.toUpperCase())}
+                onChange={(e) => {
+                  const uf = e.target.value.toUpperCase();
+                  set("uf", uf);
+                  if (!zoneTouched) set("time_zone", suggestedTimeZone(uf));
+                }}
                 placeholder="PR"
                 maxLength={2}
                 className="mono"
@@ -115,6 +123,16 @@ export function ProvisionCity({ onNavigate }: Props) {
               />
             </Field>
           </div>
+          <Field label="Fuso horário" hint="prazos, faltas e o 'hoje' da cidade seguem este fuso" error={fieldErrors.includes("time_zone")}>
+            <select
+              aria-label="Fuso horário"
+              value={form.time_zone}
+              onChange={(e) => { setZoneTouched(true); set("time_zone", e.target.value); }}
+              style={inputStyle}
+            >
+              {TIME_ZONES.map((z) => <option key={z.id} value={z.id}>{z.label}</option>)}
+            </select>
+          </Field>
           <Field label="E-mail do administrador" error={fieldErrors.includes("admin_email")}>
             <input
               value={form.admin_email}
