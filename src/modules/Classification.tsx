@@ -16,6 +16,7 @@ import { ErrorState } from "../components/ErrorState";
 import { EmptyState } from "../components/EmptyState";
 import { KpiSkeleton } from "./Overview";
 import { fmtNumber, fmtTime } from "../lib/format";
+import type { ClassificationData } from "../lib/types";
 
 export function Classification() {
   const [ trailOf, setTrailOf ] = useState<string | null>(null);
@@ -32,7 +33,7 @@ export function Classification() {
         {d.tiers.map((t) => (
           <StatTile key={t.key} label={`Tier ${t.label}`} value={t.count} tone={t.tone} source="live" />
         ))}
-        <StatTile label="Casos priority" value={d.priorityTrue} tone="warn" spark={d.priorityTrend} source="live" />
+        <StatTile label={`Casos urgentes (priority ≤ ${d.urgentMaxPriority})`} value={d.urgent} tone="warn" spark={d.urgentTrend} source="live" />
       </KpiGrid>
 
       <Panel title="Distribuição de tier" sub="total no período" asOf={data.as_of}>
@@ -47,9 +48,12 @@ export function Classification() {
         <DataTable
           cols={[
             { label: "Protocolo", w: "3fr", render: (r) => <span className="mono">{r.protocol}</span> },
-            { label: "Low", w: "1fr", align: "right", render: (r) => <span className="mono">{fmtNumber(r.low)}</span> },
-            { label: "Medium", w: "1fr", align: "right", render: (r) => <span className="mono">{fmtNumber(r.medium)}</span> },
-            { label: "High", w: "1fr", align: "right", render: (r) => <span className="mono">{fmtNumber(r.high)}</span> }
+            ...d.tierKeys.map((tier) => ({
+              label: tier,
+              w: "1fr",
+              align: "right" as const,
+              render: (r: ClassificationData["byProtocol"][number]) => <span className="mono">{fmtNumber(r.counts[tier] ?? 0)}</span>
+            }))
           ]}
           rows={d.byProtocol}
           rowKey={(r) => r.protocol}
@@ -73,20 +77,24 @@ export function Classification() {
         right={<Tag tone="info">sem dado clínico</Tag>}
         asOf={data.as_of}
       >
-        <DataTable
-          cols={[
-            { label: "Triagem", w: "2fr", render: (r) => <span className="mono">{r.id.slice(0, 12)}…</span> },
-            { label: "Tier", w: "1fr", render: (r) => <Tag tone={tierTone(r.tier)}>{r.tier || "—"}</Tag> },
-            { label: "Priority", w: "1fr", render: (r) => (r.priority ? <Tag tone="warn">sim</Tag> : <span className="mono" style={{ color: "var(--ink3)" }}>não</span>) },
-            { label: "Modo", w: "1fr", render: (r) => <span className="mono">{r.mode || "—"}</span> },
-            { label: "Protocolo", w: "2fr", render: (r) => <span className="mono">{r.protocol}</span> },
-            { label: "Trail", w: "auto", align: "right", render: () => <span className="mono" style={{ color: "var(--accent)" }}>ver →</span> }
-          ]}
-          rows={d.sampleTriages}
-          rowKey={(r) => r.id}
-          onRowClick={(r) => setTrailOf(r.id)}
-          empty="sem amostras"
-        />
+        {d.sampleTriages == null ? (
+          <EmptyState title="amostra oculta" sub="alguma contagem do filtro é menor que 5 — a amostra não aparece para não identificar ninguém" />
+        ) : (
+          <DataTable
+            cols={[
+              { label: "Triagem", w: "2fr", render: (r) => <span className="mono">{r.id.slice(0, 12)}…</span> },
+              { label: "Tier", w: "1fr", render: (r) => <Tag tone={d.tiers.find((t) => t.key === r.tier)?.tone ?? "neutral"}>{r.tier || "—"}</Tag> },
+              { label: "Priority", w: "1fr", render: (r) => (r.urgent ? <Tag tone="warn">{`${r.priority} · urgente`}</Tag> : <span className="mono" style={{ color: "var(--ink3)" }}>{r.priority ?? "—"}</span>) },
+              { label: "Modo", w: "1fr", render: (r) => <span className="mono">{r.mode || "—"}</span> },
+              { label: "Protocolo", w: "2fr", render: (r) => <span className="mono">{r.protocol}</span> },
+              { label: "Trail", w: "auto", align: "right", render: () => <span className="mono" style={{ color: "var(--accent)" }}>ver →</span> }
+            ]}
+            rows={d.sampleTriages}
+            rowKey={(r) => r.id}
+            onRowClick={(r) => setTrailOf(r.id)}
+            empty="sem amostras"
+          />
+        )}
       </Panel>
 
       {trailOf && <TrailDrawer triageId={trailOf} onClose={() => setTrailOf(null)} />}
@@ -182,13 +190,6 @@ function TrailDrawer({ triageId, onClose }: { triageId: string; onClose: () => v
       </div>
     </div>
   );
-}
-
-function tierTone(t: string | null) {
-  if (t === "low") return "ok";
-  if (t === "medium") return "warn";
-  if (t === "high") return "down";
-  return "neutral";
 }
 
 function evTone(ev: string) {

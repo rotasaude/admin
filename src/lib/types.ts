@@ -52,20 +52,30 @@ export interface TriagesData {
   byProtocol: Array<{ version: string; count: number; share: number; status: string }>;
 }
 
+// Contrato de GET /admin/api/classification desde o módulo 05 (api bd706e5).
+// Os tiers são vocabulário livre de cada protocolo (ex.: baixa/alta,
+// indefinido): `tierKeys` dá a ordem das colunas do pivô, do mais urgente
+// para o menos urgente. A urgência é priority ≤ urgentMaxPriority.
+export interface SampleTriage {
+  id: string;
+  tier: string | null;
+  priority: number | null;
+  urgent: boolean;
+  mode: string | null;
+  protocol: string;
+  at: string | null;
+}
+
 export interface ClassificationData {
   tiers: ToneSegment[];
-  byProtocol: Array<{ protocol: string; low: number; medium: number; high: number }>;
-  priorityTrue: number;
-  priorityTrend: number[];
+  tierKeys: string[];
+  urgent: number;
+  urgentMaxPriority: number;
+  urgentTrend: number[];
+  byProtocol: Array<{ protocol: string; counts: Record<string, number> }>;
   byMode: Array<{ mode: string; label: string; count: number; share: number }>;
-  sampleTriages: Array<{
-    id: string;
-    tier: string | null;
-    priority: boolean;
-    mode: string | null;
-    protocol: string;
-    at: string | null;
-  }>;
+  // null = amostra oculta pela supressão de contagens pequenas (filtro de bairro).
+  sampleTriages: SampleTriage[] | null;
 }
 
 export interface TrailStep {
