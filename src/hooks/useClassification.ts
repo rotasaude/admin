@@ -6,7 +6,7 @@ import type { ClassificationData } from "../lib/types";
 export function useClassification() {
   const scope = useScope();
   return useQuery({
-    queryKey: [ "classification", scope.period, scope.municipalityId ],
+    queryKey: [ "classification", scope.period ],
     queryFn: () => adminFetch<ClassificationData>("/classification", scopeParams(scope)),
     staleTime: 30_000
   });

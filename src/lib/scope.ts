@@ -1,4 +1,4 @@
-// Escopo do painel: período + município. Estado local da AppShell, propagado
+// Escopo do painel: período. Estado local da AppShell, propagado
 // para todos os hooks via React Query key.
 
 import { createContext, useContext } from "react";
@@ -13,9 +13,7 @@ export const PERIOD_OPTIONS: { key: PeriodKey; label: string }[] = [
 
 export interface Scope {
   period: PeriodKey;
-  municipalityId: string | "all";
   setPeriod: (p: PeriodKey) => void;
-  setMunicipality: (m: string | "all") => void;
 }
 
 export const ScopeContext = createContext<Scope | null>(null);
@@ -26,11 +24,8 @@ export function useScope(): Scope {
   return ctx;
 }
 
-// Helper para query params consistentes em todos os hooks.
+// Helper para query params consistentes em todos os hooks. O escopo é a
+// cidade do host: não há cidade (nem município) a mandar.
 export function scopeParams(scope: Scope): Record<string, string> {
-  const params: Record<string, string> = { period: scope.period };
-  if (scope.municipalityId && scope.municipalityId !== "default") {
-    params.municipality_id = scope.municipalityId;
-  }
-  return params;
+  return { period: scope.period };
 }

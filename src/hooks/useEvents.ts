@@ -7,7 +7,7 @@ export function useEvents(name?: string) {
   const scope = useScope();
   const filter = name && name !== "todos" ? { name } : {};
   return useQuery({
-    queryKey: [ "events", scope.period, scope.municipalityId, name || "todos" ],
+    queryKey: [ "events", scope.period, name || "todos" ],
     queryFn: () => adminFetch<EventsData>("/events", { ...scopeParams(scope), ...filter }),
     staleTime: 15_000
   });

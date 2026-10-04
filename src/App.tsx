@@ -31,17 +31,13 @@ export function App() {
   const [ period, setPeriod ] = useState<PeriodKey>("7d");
   const [ active, setActive ] = useState<ModuleId>("cities");
 
-  // O ScopeContext herdado espera setMunicipality como string | "all".
-  // O console não tem mais noção de município ativo (era plumbing inerte,
-  // Plano 6 fix wave); o switch real de cidade é o grant de 60s, não um
-  // estado de sessão. Aqui só refletimos pro shell legado.
+  // O console não tem noção de cidade ativa; o switch real de cidade é o
+  // grant de 60s, não um estado de sessão.
   return (
     <ScopeContext.Provider
       value={{
         period,
-        municipalityId: "default",
-        setPeriod,
-        setMunicipality: () => { /* console não tem município ativo */ }
+        setPeriod
       }}
     >
       <ShellInner active={active} setActive={setActive} />

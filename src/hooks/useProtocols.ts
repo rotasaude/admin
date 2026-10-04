@@ -1,12 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { adminFetch, ApiError } from "../lib/api";
-import { useScope } from "../lib/scope";
 import type { ProtocolDetailData, ProtocolsListData } from "../lib/types";
 
 export function useProtocols() {
-  const scope = useScope();
   return useQuery({
-    queryKey: [ "protocols", scope.municipalityId ],
+    queryKey: [ "protocols" ],
     queryFn: () => adminFetch<ProtocolsListData>("/protocols"),
     staleTime: 60_000
   });

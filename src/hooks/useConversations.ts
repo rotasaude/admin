@@ -6,7 +6,7 @@ import type { ConversationsData } from "../lib/types";
 export function useConversations() {
   const scope = useScope();
   return useQuery({
-    queryKey: [ "conversations", scope.period, scope.municipalityId ],
+    queryKey: [ "conversations", scope.period ],
     queryFn: () => adminFetch<ConversationsData>("/conversations", scopeParams(scope)),
     staleTime: 30_000
   });

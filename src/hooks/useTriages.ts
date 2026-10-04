@@ -6,7 +6,7 @@ import type { TriagesData } from "../lib/types";
 export function useTriages() {
   const scope = useScope();
   return useQuery({
-    queryKey: [ "triages", scope.period, scope.municipalityId ],
+    queryKey: [ "triages", scope.period ],
     queryFn: () => adminFetch<TriagesData>("/triages", scopeParams(scope)),
     staleTime: 30_000
   });

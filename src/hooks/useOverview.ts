@@ -6,7 +6,7 @@ import type { OverviewData } from "../lib/types";
 export function useOverview() {
   const scope = useScope();
   return useQuery({
-    queryKey: [ "overview", scope.period, scope.municipalityId ],
+    queryKey: [ "overview", scope.period ],
     queryFn: () => adminFetch<OverviewData>("/overview", scopeParams(scope)),
     staleTime: 30_000
   });
