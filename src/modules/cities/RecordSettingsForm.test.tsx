@@ -13,6 +13,7 @@ import { listCities, getCity, updateCityRecordSettings, ApiError } from "../../l
 import type { CityDetail, CityRow } from "../../lib/types";
 import { FIELD_PROBLEMS, IBGE_LOCKED_TEXT } from "../../lib/recordSettings";
 import { Cities } from "../Cities";
+import { RecordSettingsForm } from "./RecordSettingsForm";
 
 const citiesMock = vi.mocked(listCities);
 const cityMock = vi.mocked(getCity);
@@ -228,5 +229,44 @@ describe("RecordSettingsForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Voltar para Cidades" }));
     expect(await screen.findByText("Prontuário Rota Saúde")).toBeTruthy();
     expect(citiesMock.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  describe("baseline across city prop changes", () => {
+    const DOWN: CityDetail = { ...DETAIL, ibge_code: null, city_reachable: false };
+    const UP: CityDetail = { ...DETAIL, ibge_code: "4106902", city_reachable: true };
+
+    it("a clean form resyncs to refreshed data and then sends only the PEC change", async () => {
+      updateMock.mockResolvedValue({ ...UP, pec_url: "https://pec.a.gov.br" });
+      const onSaved = vi.fn();
+      const view = render(<RecordSettingsForm city={DOWN} onSaved={onSaved} />);
+      expect((field(/^Código IBGE/) as HTMLInputElement).disabled).toBe(true);
+
+      view.rerender(<RecordSettingsForm city={UP} onSaved={onSaved} />);
+      const ibge = field(/^Código IBGE/) as HTMLInputElement;
+      expect(ibge.disabled).toBe(false);
+      expect(ibge.value).toBe("4106902");
+
+      fireEvent.change(field(/^Endereço do PEC/), { target: { value: "https://pec.a.gov.br" } });
+      save();
+
+      expect(await screen.findByText("Salvo.")).toBeTruthy();
+      expect(updateMock).toHaveBeenCalledWith("c-cwb", { pec_url: "https://pec.a.gov.br" });
+    });
+
+    it("a dirty form keeps its baseline: IBGE stays locked and never goes in the patch", async () => {
+      updateMock.mockResolvedValue({ ...DOWN, pec_url: "https://pec.a.gov.br" });
+      const onSaved = vi.fn();
+      const view = render(<RecordSettingsForm city={DOWN} onSaved={onSaved} />);
+      fireEvent.change(field(/^Endereço do PEC/), { target: { value: "https://pec.a.gov.br" } });
+
+      view.rerender(<RecordSettingsForm city={UP} onSaved={onSaved} />);
+      expect((field(/^Código IBGE/) as HTMLInputElement).disabled).toBe(true);
+      expect(field(/^Endereço do PEC/).value).toBe("https://pec.a.gov.br");
+
+      save();
+
+      expect(await screen.findByText("Salvo.")).toBeTruthy();
+      expect(updateMock).toHaveBeenCalledWith("c-cwb", { pec_url: "https://pec.a.gov.br" });
+    });
   });
 });

@@ -8,11 +8,11 @@
 // - Banco da cidade inalcançável (city_reachable: false): o IBGE fica
 //   bloqueado; o null que veio não é "vazio".
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { updateCityRecordSettings, type RecordSettingsPatch } from "../../lib/api";
 import type { CityDetail } from "../../lib/types";
 import {
-  FIELD_PROBLEMS, IBGE_LOCKED_TEXT, RECORD_MODES, changesMode, describeRecordSettingsError, formFrom, ibgeLocked,
+  FIELD_PROBLEMS, IBGE_LOCKED_TEXT, RECORD_MODES, type RecordFields, changesMode, describeRecordSettingsError, formFrom, ibgeLocked,
   modeChangeWarning, recordSettingsPatch, validateRecordSettings, type RecordSettingsField, type RecordSettingsValues
 } from "../../lib/recordSettings";
 
@@ -22,12 +22,25 @@ interface Props {
 }
 
 export function RecordSettingsForm({ city, onSaved }: Props) {
+  // base: o que o operador viu ao abrir (ou o que o último PATCH devolveu). O patch,
+  // o bloqueio do IBGE e o "de" da confirmação saem dele, nunca do city vivo.
+  const [ base, setBase ] = useState<RecordFields>(city);
   const [ values, setValues ] = useState<RecordSettingsValues>(() => formFrom(city));
   const [ bad, setBad ] = useState<RecordSettingsField[]>([]);
   const [ pending, setPending ] = useState<RecordSettingsPatch | null>(null);
   const [ busy, setBusy ] = useState(false);
   const [ error, setError ] = useState<string | null>(null);
   const [ notice, setNotice ] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (busy || pending !== null) return;
+    const a = formFrom(base);
+    const dirty = a.record_mode !== values.record_mode || a.ibge_code !== values.ibge_code || a.pec_url !== values.pec_url;
+    if (dirty) return;
+    setBase(city);
+    setValues(formFrom(city));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ city ]);
 
   function set<K extends keyof RecordSettingsValues>(key: K, value: string) {
     setValues((v) => ({ ...v, [ key ]: value }));
@@ -41,7 +54,7 @@ export function RecordSettingsForm({ city, onSaved }: Props) {
     const problems = validateRecordSettings(values);
     setBad(problems);
     if (problems.length > 0) return;
-    const patch = recordSettingsPatch(city, values);
+    const patch = recordSettingsPatch(base, values);
     if (Object.keys(patch).length === 0) {
       setNotice("Nada mudou.");
       return;
@@ -57,6 +70,7 @@ export function RecordSettingsForm({ city, onSaved }: Props) {
     setBusy(true);
     try {
       const updated = await updateCityRecordSettings(city.id, patch);
+      setBase(updated);
       setValues(formFrom(updated));
       setNotice("Salvo.");
       onSaved(updated);
@@ -69,7 +83,7 @@ export function RecordSettingsForm({ city, onSaved }: Props) {
   }
 
   const locked = busy || pending !== null;
-  const ibgeOff = ibgeLocked(city);
+  const ibgeOff = ibgeLocked(base);
   const hint = RECORD_MODES.find((m) => m.value === values.record_mode)?.hint;
 
   return (
@@ -122,7 +136,7 @@ export function RecordSettingsForm({ city, onSaved }: Props) {
           aria-label="Confirmar mudança de modo"
           style={{ padding: "10px 12px", borderRadius: 8, background: "var(--warn-bg)", color: "var(--ink)", fontSize: 12, display: "flex", flexDirection: "column", gap: 8 }}
         >
-          <p style={{ margin: 0 }}>{modeChangeWarning(city.record_mode, pending.record_mode ?? values.record_mode)}</p>
+          <p style={{ margin: 0 }}>{modeChangeWarning(base.record_mode, pending.record_mode ?? values.record_mode)}</p>
           <div style={{ display: "flex", gap: 8 }}>
             <button type="button" onClick={() => { void send(pending); }} disabled={busy} style={btnPrimary(busy)}>
               {busy ? "Salvando…" : "Confirmar mudança"}
