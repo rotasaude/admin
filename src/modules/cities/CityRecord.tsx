@@ -1,14 +1,18 @@
 // Ficha da cidade (módulo 16, ADR 0028). Abre de "Cidades" pelo botão
 // "Ficha". Lê GET /cities/:id. O cabeçalho usa nome e UF da linha da lista,
-// que já está carregada (o show devolve os mesmos campos).
+// que já está carregada (o show devolve os mesmos campos). Depois de salvar, a ficha passa a mostrar a cidade que
+// o PATCH devolveu (inclusive o `features`, que o servidor recalcula) e a
+// lista de cidades é recarregada.
 
-import { useCity } from "../../hooks/useCities";
-import type { CityRow } from "../../lib/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { cityKey, useCity } from "../../hooks/useCities";
+import type { CityDetail, CityRow } from "../../lib/types";
 import { PageHeader } from "../../components/PageHeader";
 import { Panel } from "../../components/Panel";
 import { ErrorState } from "../../components/ErrorState";
 import { Skeleton } from "../../components/Skeleton";
 import { CityFeatures } from "./CityFeatures";
+import { RecordSettingsForm } from "./RecordSettingsForm";
 
 interface Props {
   city: CityRow;
@@ -16,7 +20,13 @@ interface Props {
 }
 
 export function CityRecord({ city, onBack }: Props) {
+  const qc = useQueryClient();
   const { data, isLoading, isError, error, refetch } = useCity(city.id);
+
+  function onSaved(updated: CityDetail) {
+    qc.setQueryData(cityKey(city.id), updated);
+    void qc.invalidateQueries({ queryKey: [ "cities" ] });
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -29,9 +39,14 @@ export function CityRecord({ city, onBack }: Props) {
       {isLoading && <Skeleton rows={4} />}
       {isError && <ErrorState message={(error as Error)?.message || "Erro"} onRetry={() => refetch()} />}
       {data && (
-        <Panel title="Interruptores" sub="só leitura · quem liga é o maintenance">
-          <CityFeatures features={data.features} />
-        </Panel>
+        <>
+          <Panel title="Prontuário e e-SUS" sub="modo · código IBGE · endereço do PEC">
+            <RecordSettingsForm city={data} onSaved={onSaved} />
+          </Panel>
+          <Panel title="Interruptores" sub="só leitura · quem liga é o maintenance">
+            <CityFeatures features={data.features} />
+          </Panel>
+        </>
       )}
     </div>
   );

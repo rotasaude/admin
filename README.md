@@ -25,6 +25,12 @@ O que ele faz hoje:
   o host da cidade, que consome o grant e abre uma sessão marcada como
   origem-plataforma. A entrada fica auditada nos dois lados (`platform_events`
   e `domain_events` da cidade).
+- **Ficha da cidade** (botão **Ficha** em Cidades, módulo 16, ADR 0028):
+  modo de prontuário (`off`, `integrated`, `record`), código IBGE e endereço
+  HTTPS do PEC, por `PATCH /cities/:id/record_settings`. Mudar o modo pede
+  confirmação. Os interruptores da cidade (`ledi_export`, `cadsus_lookup`)
+  aparecem **só para leitura**, com o que falta: quem liga é o mantenedor, no
+  `maintenance`; credenciais são da cidade (dashboard, Integrações).
 - **Provisionar cidade**: `POST /cities`, assíncrono (202 + worker). O convite
   do 1º admin municipal vai por e-mail; o token nunca volta para o console.
 - **Registrar canal**: `POST /cities/:id/channel`, canal WhatsApp de uma cidade
