@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { ApiError } from "./api";
 import {
-  FIELD_PROBLEMS, changesMode, describeRecordSettingsError, featureLabel, featureState, formFrom, ibgeLocked,
+  FIELD_PROBLEMS, IBGE_LOCKED_TEXT, changesMode, describeRecordSettingsError, featureLabel, featureState, formFrom, ibgeLocked,
   missingLabel, modeChangeWarning, pecUrlProblem, recordModeLabel, recordSettingsPatch, validateRecordSettings
 } from "./recordSettings";
 
@@ -133,5 +133,13 @@ describe("switches", () => {
       .toEqual({ kind: "usable", text: "ligado · utilizável", tone: "ok" });
     expect(featureState({ key: "k", enabled: true, usable: false, missing: [ "pec_url_missing" ] }))
       .toEqual({ kind: "blocked", text: "ligado · não utilizável", tone: "warn" });
+  });
+});
+
+describe("IBGE_LOCKED_TEXT", () => {
+  it("covers an unreachable database and a non-active city", () => {
+    expect(IBGE_LOCKED_TEXT).toBe(
+      "banco da cidade inalcançável ou cidade não ativa: o código IBGE não pode ser lido nem editado agora"
+    );
   });
 });

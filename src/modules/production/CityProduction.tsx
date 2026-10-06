@@ -1,7 +1,7 @@
 // Produção das cidades (módulo 16, spec §6.5; contratos §4.3) — só leitura.
 // Fala com GET /city_production (PlatformConsoleHost, operador): resumo por
 // cidade da competência corrente e da anterior (aceitas, recusadas,
-// pendentes, falhas, prazo e alerta). Nenhuma ficha nem dado de cidadão chega
+// pendentes, enviando, falhas, prazo e alerta). Nenhuma ficha nem dado de cidadão chega
 // ao console. O aviso de SIGTAP não importada vale para todas as cidades.
 
 import { useQuery } from "@tanstack/react-query";
@@ -40,7 +40,7 @@ export function CityProduction() {
   const alerts = data ? countAlerts(data) : null;
 
   const cols: Column<ProductionRow>[] = [
-    { label: "Cidade", w: "1.2fr", render: (r) => r.name },
+    { label: "Cidade", w: "1.2fr", render: (r) => (r.city_unreachable && r.competence ? `${r.name} · inalcançável` : r.name) },
     { label: "Modo", w: "1.1fr", render: (r) => recordModeLabel(r.record_mode) },
     { label: "Competência", w: "0.8fr", render: (r) => (
         r.competence
@@ -75,7 +75,7 @@ export function CityProduction() {
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <PageHeader title="Produção das cidades" sub="e-SUS APS · competência corrente e anterior" />
       <p style={{ fontSize: 12, color: "var(--ink3)", margin: 0 }}>
-        Fichas enviadas ao PEC de cada cidade. O prazo é o 10º dia útil do mês seguinte à competência.
+        Fichas enviadas ao PEC de cada cidade. O prazo é o da tabela oficial do SIAPS; na falta dela, o 10º dia útil do mês seguinte à competência.
         Atenção: até 5 dias úteis do prazo com ficha pendente, recusada ou com falha. Crítico: modo Prontuário Rota
         Saúde e nenhuma ficha aceita a até 3 dias úteis do prazo.
       </p>

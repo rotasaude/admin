@@ -52,7 +52,7 @@ describe("deadlineDivergence", () => {
 
   it("notice by text when the estimate differs", () => {
     expect(deadlineDivergence(comp({ deadline_estimated_on: "2026-11-13" }))).toBe(
-      "tabela do SIAPS diverge da estimativa por dias úteis (13/11/2026)"
+      "estimativa por dias úteis: 13/11/2026 (vale a tabela do SIAPS)"
     );
   });
 });

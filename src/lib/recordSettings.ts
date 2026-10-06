@@ -58,7 +58,7 @@ export function ibgeLocked(city: RecordFields): boolean {
 }
 
 export const IBGE_LOCKED_TEXT =
-  "o banco da cidade não respondeu: o código IBGE não pode ser lido nem editado agora";
+  "banco da cidade inalcançável ou cidade não ativa: o código IBGE não pode ser lido nem editado agora";
 
 export function formFrom(city: RecordFields): RecordSettingsValues {
   return { record_mode: city.record_mode, ibge_code: city.ibge_code ?? "", pec_url: city.pec_url ?? "" };

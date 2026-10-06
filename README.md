@@ -43,8 +43,9 @@ O que ele faz hoje:
   O console nunca vê bairro, unidade, protocolo ou pergunta.
 - **Produção das cidades**: `GET /city_production`, só leitura (módulo 16).
   Por cidade, a competência corrente e a anterior: aceitas, recusadas,
-  pendentes, enviando, falhas, prazo (10º dia útil do mês seguinte) e alerta
-  (`attention`, `critical`). Avisa quando a SIGTAP da competência corrente não
+  pendentes, enviando, falhas, prazo (a tabela oficial do SIAPS; na falta dela,
+  o 10º dia útil do mês seguinte; estimativa por dias úteis divergente aparece
+  como aviso) e alerta (`attention`, `critical`). Avisa quando a SIGTAP da competência corrente não
   foi importada (o api levanta o alerta a partir do dia 5, em America/Sao_Paulo).
 
 Gestão de membros e papéis **não** é feita aqui: é operação dentro da cidade

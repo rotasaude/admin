@@ -37,7 +37,7 @@ export function deadlineText(c: CompetenceSummary): string {
 export function deadlineDivergence(c: CompetenceSummary): string | null {
   const est = c.deadline_estimated_on;
   if (!est || est === c.deadline_on) return null;
-  return `tabela do SIAPS diverge da estimativa por dias úteis (${fmtDay(est)})`;
+  return `estimativa por dias úteis: ${fmtDay(est)} (vale a tabela do SIAPS)`;
 }
 
 export interface AlertView {

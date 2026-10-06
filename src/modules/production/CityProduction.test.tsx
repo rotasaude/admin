@@ -87,6 +87,7 @@ describe("CityProduction", () => {
     renderScreen();
 
     expect(await screen.findByText(/Atenção: até 5 dias úteis do prazo com ficha pendente, recusada ou com falha/)).toBeTruthy();
+    expect(screen.getByText(/O prazo é o da tabela oficial do SIAPS; na falta dela, o 10º dia útil do mês seguinte à competência\./)).toBeTruthy();
     expect(screen.getByText(/Crítico: modo Prontuário Rota Saúde e nenhuma ficha aceita a até 3 dias úteis do prazo/)).toBeTruthy();
   });
 
@@ -123,7 +124,7 @@ describe("CityProduction", () => {
 
     await screen.findByText("Aaa");
     const rows = rowsText();
-    expect(rows[0]).toContain("tabela do SIAPS diverge da estimativa por dias úteis (13/11/2026)");
+    expect(rows[0]).toContain("estimativa por dias úteis: 13/11/2026 (vale a tabela do SIAPS)");
     expect(rows[1]).not.toContain("diverge");
   });
 
@@ -142,6 +143,22 @@ describe("CityProduction", () => {
     expect(rows[0]).toContain("cidade inalcançável");
     expect(rows[0]).not.toContain("sem fichas");
     expect(rows[1]).toContain("sem fichas");
+    expect(rows[1]).not.toContain("inalcançável");
+  });
+
+  it("marks the city name as unreachable when the row still shows figures", async () => {
+    mocked.mockResolvedValue({
+      ...DATA,
+      cities: [
+        { slug: "a", name: "Aaa", record_mode: "record", competences: [ comp({}) ], city_unreachable: true },
+        { slug: "b", name: "Bbb", record_mode: "record", competences: [ comp({}) ] }
+      ]
+    });
+    renderScreen();
+
+    await screen.findByText(/Aaa/);
+    const rows = rowsText();
+    expect(rows[0]).toContain("Aaa · inalcançável");
     expect(rows[1]).not.toContain("inalcançável");
   });
 
