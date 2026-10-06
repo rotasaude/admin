@@ -26,6 +26,7 @@ import { ProvisionCity } from "./modules/setup/ProvisionCity";
 import { RegisterChannel } from "./modules/setup/RegisterChannel";
 import { UnknownChannels } from "./modules/setup/UnknownChannels";
 import { CityAnalytics } from "./modules/analytics/CityAnalytics";
+import { CityProduction } from "./modules/production/CityProduction";
 
 export function App() {
   const [ period, setPeriod ] = useState<PeriodKey>("7d");
@@ -75,5 +76,6 @@ function renderModule(id: ModuleId, onNavigate: (id: ModuleId) => void) {
     case "register_channel": return <RegisterChannel />;
     case "unknown_channels": return <UnknownChannels />;
     case "city_analytics": return <CityAnalytics />;
+    case "city_production": return <CityProduction />;
   }
 }

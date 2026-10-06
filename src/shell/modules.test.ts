@@ -28,3 +28,17 @@ describe("NAV_GROUPS analytics", () => {
     expect(item?.visible?.({ operator: false, memberships: [ { role: "municipal_admin" } ] })).toBe(false);
   });
 });
+
+describe("NAV_GROUPS e-SUS", () => {
+  const group = NAV_GROUPS.find((g) => g.label === "e-SUS");
+  const item = group?.items.find((i) => i.id === "city_production");
+
+  it("lists Produção das cidades in its own group", () => {
+    expect(item?.label).toBe("Produção das cidades");
+  });
+
+  it("shows it to operators only", () => {
+    expect(item?.visible?.({ operator: true, memberships: [] })).toBe(true);
+    expect(item?.visible?.({ operator: false, memberships: [ { role: "municipal_admin" } ] })).toBe(false);
+  });
+});
