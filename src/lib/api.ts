@@ -4,7 +4,7 @@
 //   - Envelope universal nos admin endpoints: { data, as_of }.
 //   - Auth: cookie de sessão HttpOnly (ADR-0022). credentials: "include".
 
-import type { CityRow } from "./types";
+import type { CityDetail, CityRow, RecordMode } from "./types";
 import type { ProvisionCityPayload } from "./provisioning";
 
 const BASE = import.meta.env.VITE_ADMIN_API_BASE || "/admin/api";
@@ -254,5 +254,77 @@ export interface CityAnalyticsData {
 
 export async function listCityAnalytics(): Promise<CityAnalyticsData> {
   const res = await jsonFetch<{ data: CityAnalyticsData }>("/city_analytics");
+  return res.data;
+}
+
+// ─── Módulo 16 (ADR 0028; contratos §4) ─────────────────────────────────────
+// Ficha da cidade: GET /cities/:id (objeto solto) e
+// PATCH /cities/:id/record_settings (qualquer subconjunto; null limpa o campo).
+// null limpa pec_url/ibge_code; record_mode nunca é nulo. 404 { error: "not_found" }.
+// 422: invalid_record_mode, invalid_ibge_code, invalid_pec_url, invalid_city
+// (cadastro da cidade inválido por outra regra). 503 city_unreachable
+// quando ibge_code veio e o banco da cidade não responde: o IBGE mora no
+// city_profile da cidade (fonte única, a mesma do provisionamento).
+export interface RecordSettingsPatch {
+  record_mode?: RecordMode;
+  ibge_code?: string | null;
+  pec_url?: string | null;
+}
+
+export async function getCity(cityId: string): Promise<CityDetail> {
+  return jsonFetch<CityDetail>(`/cities/${encodeURIComponent(cityId)}`);
+}
+
+export async function updateCityRecordSettings(cityId: string, patch: RecordSettingsPatch): Promise<CityDetail> {
+  const res = await jsonFetch<{ city: CityDetail }>(`/cities/${encodeURIComponent(cityId)}/record_settings`, {
+    method: "PATCH",
+    body: JSON.stringify(patch)
+  });
+  return res.city;
+}
+
+// GET /city_production (contratos §4.3, §8) — resumo por cidade da competência
+// corrente e da anterior (corrente primeiro), no envelope { data }. Entregue
+// pelo plano api-exporter. sigtap_alert vem calculado do api (dia ≥ 5).
+// Opcionais (tolerados ausentes): sending (campo próprio; pending não o inclui),
+// deadline_estimated_on (estimativa em dias úteis, enviada quando a tabela
+// oficial do SIAPS diverge) e city_unreachable (cidade inativa/inalcançável).
+export type ProductionAlert = "none" | "attention" | "critical";
+
+export interface CompetenceSummary {
+  competence: string;          // AAAAMM
+  deadline_on: string;         // YYYY-MM-DD
+  business_days_left: number;
+  accepted: number;
+  rejected: number;
+  pending: number;             // não inclui sending
+  sending?: number;            // em envio; campo próprio
+  failed: number;
+  alert: ProductionAlert;
+  // YYYY-MM-DD; estimativa em dias úteis quando a tabela oficial do SIAPS diverge.
+  deadline_estimated_on?: string | null;
+}
+
+export interface CityProductionCity {
+  slug: string;
+  name: string;
+  record_mode: RecordMode;
+  city_unreachable?: boolean;  // cidade não ativa ou banco inalcançável
+  competences: CompetenceSummary[];
+}
+
+export interface CityProductionTerminology {
+  sigtap_current_competence: string;
+  sigtap_imported: boolean;
+  sigtap_alert: boolean;
+}
+
+export interface CityProductionData {
+  cities: CityProductionCity[];
+  terminology: CityProductionTerminology;
+}
+
+export async function listCityProduction(): Promise<CityProductionData> {
+  const res = await jsonFetch<{ data: CityProductionData }>("/city_production");
   return res.data;
 }

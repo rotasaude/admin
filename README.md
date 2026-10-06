@@ -84,7 +84,7 @@ npm install
 npm run dev        # porta 5173; o compose publica em 5174
 ```
 
-O Vite proxa `/admin/api`, `/session`, `/mfa`, `/setup`, `/cities`, `/city_grants`, `/unknown_channels` e `/city_analytics` para `VITE_API_PROXY_TARGET` **sem reescrever o Host**
+O Vite proxa `/admin/api`, `/session`, `/mfa`, `/setup`, `/cities`, `/city_grants`, `/unknown_channels`, `/city_analytics` e `/city_production` para `VITE_API_PROXY_TARGET` **sem reescrever o Host**
 (`changeOrigin: false`).
 
 ### Variáveis

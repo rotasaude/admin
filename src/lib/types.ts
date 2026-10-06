@@ -198,4 +198,37 @@ export interface CityRow {
   // Fuso IANA da cidade (api#27); ausente em api antigo.
   time_zone?: string;
   created_at: string;
+  // Módulo 16 (contratos §4.2); ausentes em api antigo.
+  record_mode?: RecordMode;
+  ibge_code?: string | null;
+  pec_url?: string | null;
+  city_reachable?: boolean;
+  features?: CityFeatureState[];
 }
+
+// ─── Módulo 16 (ADR 0028): modo de prontuário e interruptores ───────────────
+// record_mode, ibge_code e pec_url são do operador (PATCH record_settings).
+// features é SÓ LEITURA aqui: quem liga e desliga é o maintenance.
+export type RecordMode = "off" | "integrated" | "record";
+
+export interface CityFeatureState {
+  key: string;
+  enabled: boolean;
+  usable: boolean;
+  missing: string[];
+}
+
+// ibge_code mora no city_profile do banco da cidade (fonte única). Com o banco
+// inalcançável, o api manda ibge_code: null e city_reachable: false — null aí
+// NÃO é "vazio", e a ficha bloqueia a edição do IBGE.
+export interface CityRecordFields {
+  record_mode: RecordMode;
+  ibge_code: string | null;
+  pec_url: string | null;
+  city_reachable: boolean;
+  features: CityFeatureState[];
+}
+
+// GET /cities/:id (objeto solto, com os campos do item da lista) e o `city` de
+// PATCH /cities/:id/record_settings.
+export interface CityDetail extends Omit<CityRow, keyof CityRecordFields>, CityRecordFields {}
