@@ -48,12 +48,15 @@ export function DataTable<T>({ cols, rows, rowKey, onRowClick, empty }: Props<T>
           </span>
         ))}
       </div>
-      {rows.map((r, i) => (
-        <button
+      {rows.map((r, i) => {
+        // Sem onRowClick a linha é um div: botões dentro da linha (ex.: Ficha/Entrar)
+        // não podem ficar aninhados em outro button.
+        const Row = onRowClick ? "button" : "div";
+        return (
+        <Row
           key={rowKey(r, i)}
           role="row"
-          onClick={onRowClick ? () => onRowClick(r) : undefined}
-          disabled={!onRowClick}
+          {...(onRowClick ? { onClick: () => onRowClick(r) } : {})}
           style={{
             display: "grid",
             gridTemplateColumns: gridCols,
@@ -74,8 +77,9 @@ export function DataTable<T>({ cols, rows, rowKey, onRowClick, empty }: Props<T>
               {c.render(r)}
             </span>
           ))}
-        </button>
-      ))}
+        </Row>
+        );
+      })}
     </div>
   );
 }

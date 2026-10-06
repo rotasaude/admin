@@ -1,9 +1,11 @@
 // Cidades do catálogo (operador). Sem métricas cross-tenant: o console mostra
 // estado de provisionamento e leva o operador para dentro da cidade (Plano 6,
-// spec §5).
+// spec §5). Módulo 16: "Ficha" abre a ficha da cidade (modo de prontuário,
+// IBGE, PEC e interruptores), por estado local — o console não tem roteador.
 import { useState } from "react";
 import { useCities } from "../hooks/useCities";
 import { enterCity, sortedForDisplay } from "../lib/cities";
+import { recordModeLabel } from "../lib/recordSettings";
 import { PageHeader } from "../components/PageHeader";
 import { DataTable, type Column } from "../components/DataTable";
 import { StatusDot } from "../components/StatusDot";
@@ -12,11 +14,17 @@ import { ErrorState } from "../components/ErrorState";
 import { Skeleton } from "../components/Skeleton";
 import { fmtTime } from "../lib/format";
 import type { CityRow } from "../lib/types";
+import { CityRecord } from "./cities/CityRecord";
 
 export function Cities() {
   const { data, isLoading, isError, error, refetch } = useCities();
   const [ busySlug, setBusySlug ] = useState<string | null>(null);
   const [ failure, setFailure ] = useState<string | null>(null);
+  const [ openId, setOpenId ] = useState<string | null>(null);
+
+  // Pelo id: quando a lista recarrega, a ficha aberta recebe a linha nova.
+  const open = openId ? data?.find((c) => c.id === openId) : undefined;
+  if (open) return <CityRecord city={open} onBack={() => setOpenId(null)} />;
 
   async function onEnter(city: CityRow) {
     setBusySlug(city.slug);
@@ -38,18 +46,29 @@ export function Cities() {
           <StatusDot level={c.status === "active" ? "ok" : "warn"} /> {c.status}
         </span>
       ) },
+    { label: "Prontuário", w: "1.1fr", render: (c) => recordModeLabel(c.record_mode) },
     { label: "Schema", w: "0.7fr", render: (c) => <span className="mono">{c.schema_version ?? "—"}</span> },
     { label: "Fuso", w: "1fr", render: (c) => <span className="mono">{c.time_zone ?? "—"}</span> },
     { label: "Criada", w: "1fr", render: (c) => c.created_at ? fmtTime(c.created_at) : "—" },
-    { label: "", w: "0.7fr", align: "right", render: (c) => (
-        <button
-          type="button"
-          disabled={c.status !== "active" || busySlug === c.slug}
-          onClick={() => { void onEnter(c); }}
-          style={enterBtn}
-        >
-          {busySlug === c.slug ? "Entrando…" : "Entrar"}
-        </button>
+    { label: "", w: "1.2fr", align: "right", render: (c) => (
+        <span style={{ display: "inline-flex", gap: 6 }}>
+          <button
+            type="button"
+            aria-label={`Ficha de ${c.name}`}
+            onClick={() => setOpenId(c.id)}
+            style={enterBtn}
+          >
+            Ficha
+          </button>
+          <button
+            type="button"
+            disabled={c.status !== "active" || busySlug === c.slug}
+            onClick={() => { void onEnter(c); }}
+            style={enterBtn}
+          >
+            {busySlug === c.slug ? "Entrando…" : "Entrar"}
+          </button>
+        </span>
       ) }
   ];
 
