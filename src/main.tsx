@@ -1,9 +1,7 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-// Fontes self-hosted via @fontsource — sem fetch externo (preferência LGPD/perf).
-import "@fontsource-variable/geist/index.css";
-import "@fontsource-variable/geist-mono/index.css";
+// Fonte do tema (Rawline) vem de src/theme/vendor/fonts, sem fetch externo.
 import { App } from "./App";
 import { Login } from "./modules/Login";
 import { MfaChallenge } from "./modules/setup/MfaChallenge";
