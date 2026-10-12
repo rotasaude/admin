@@ -139,8 +139,7 @@ const inputStyle: React.CSSProperties = {
   color: "var(--ink)",
   background: "var(--panel)",
   border: "1px solid var(--rule2)",
-  borderRadius: 8,
-  outline: "none"
+  borderRadius: 8
 };
 
 function btnPrimary(disabled: boolean): React.CSSProperties {

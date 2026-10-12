@@ -350,7 +350,7 @@ function LiveClock() {
         }}
       />
       <span className="mono" style={{ fontSize: 11, color: "var(--ink3)", whiteSpace: "nowrap" }}>
-        {time} <span style={{ color: "var(--ink4)" }}>BRT</span>
+        {time} <span style={{ color: "var(--ink3)" }}>BRT</span>
       </span>
     </span>
   );

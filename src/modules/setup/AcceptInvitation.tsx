@@ -111,7 +111,7 @@ function Field({ label, type, value, onChange, autoComplete }: {
 const inputStyle: React.CSSProperties = {
   padding: "9px 10px", fontSize: 13, fontFamily: "var(--font-sans)",
   color: "var(--ink)", background: "var(--panel)",
-  border: "1px solid var(--rule2)", borderRadius: 8, outline: "none"
+  border: "1px solid var(--rule2)", borderRadius: 8
 };
 
 function btnPrimary(disabled: boolean): React.CSSProperties {
