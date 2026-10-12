@@ -2,12 +2,15 @@
 // `cols[*].w` aceita qualquer grid-template-columns value (fr, px, minmax).
 
 import type { ReactNode } from "react";
+import "./datatable.css";
 
 export interface Column<T> {
   label: string;
   w?: string;
   align?: "left" | "right" | "center";
   render: (row: T) => ReactNode;
+  // Modo cartão (<1024px): papel da coluna quando a regra automática não serve.
+  card?: "title" | "actions" | "hide";
 }
 
 interface Props<T> {
@@ -24,10 +27,10 @@ export function DataTable<T>({ cols, rows, rowKey, onRowClick, empty }: Props<T>
     return <div className="mono" style={{ fontSize: 10.5, color: "var(--ink3)" }}>{empty ?? "sem dados"}</div>;
   }
   return (
-    <div role="table" style={{ width: "100%" }}>
+    <div role="table" className="dt" style={{ width: "100%" }}>
       <div
         role="row"
-        className="mono"
+        className="mono dt-row dt-head"
         style={{
           display: "grid",
           gridTemplateColumns: gridCols,
@@ -56,6 +59,7 @@ export function DataTable<T>({ cols, rows, rowKey, onRowClick, empty }: Props<T>
         <Row
           key={rowKey(r, i)}
           role="row"
+          className="dt-row"
           {...(onRowClick ? { onClick: () => onRowClick(r) } : {})}
           style={{
             display: "grid",
@@ -73,7 +77,8 @@ export function DataTable<T>({ cols, rows, rowKey, onRowClick, empty }: Props<T>
           }}
         >
           {cols.map((c, ci) => (
-            <span key={ci} role="cell" style={{ textAlign: c.align || "left", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <span key={ci} role="cell" className="dt-cell" data-label={c.label}
+            data-align={c.align && c.align !== "left" ? c.align : undefined} data-card={c.card}>
               {c.render(r)}
             </span>
           ))}
