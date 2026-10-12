@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
-import { renderModule, shellGroupsFor } from "./App";
+import { ROUTABLE_IDS, renderModule, shellGroupsFor } from "./App";
 
 type El = ReactElement<Record<string, (id?: string) => void>>;
 
@@ -23,5 +23,12 @@ describe("grupos do console", () => {
   it("sem operador, nenhum grupo", () => {
     expect(shellGroupsFor({ operator: false, memberships: [] })).toEqual([]);
     expect(shellGroupsFor(null)).toEqual([]);
+  });
+});
+
+describe("telas alcançáveis pelo endereço", () => {
+  it("setup_mfa (não funciona em admin.*) não abre por link colado", () => {
+    expect(ROUTABLE_IDS.has("setup_mfa")).toBe(false);
+    expect(ROUTABLE_IDS.has("cities")).toBe(true);
   });
 });

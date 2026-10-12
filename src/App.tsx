@@ -38,8 +38,9 @@ import { UnknownChannels } from "./modules/setup/UnknownChannels";
 import { CityAnalytics } from "./modules/analytics/CityAnalytics";
 import { CityProduction } from "./modules/production/CityProduction";
 
-const OFF_MENU: ReadonlySet<string> = new Set([ "setup_mfa" ]);
-const ALL_IDS: ReadonlySet<string> = new Set([ ...NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id)), ...OFF_MENU ]);
+// Pelo endereço, só as telas do menu. setup_mfa fica de fora: MfaEnroll não
+// funciona em admin.* (ver o arquivo) e nada navega até ele.
+export const ROUTABLE_IDS: ReadonlySet<string> = new Set(NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id)));
 const ALL_SLUGS: ReadonlySet<string> = new Set(NAV_GROUPS.map((g) => slugOf(g.label)));
 
 // Mesmo filtro do AppHeader antigo: item com `visible` exige usuário.
@@ -71,9 +72,9 @@ function ShellInner() {
   const isAllowed = useCallback((r: Route<ModuleId>) => {
     if (r.kind === "home" || r.kind === "a11y") return true;
     if (r.kind === "group") return groups.some((g) => g.slug === r.slug);
-    return OFF_MENU.has(r.id) || groups.some((g) => g.items.some((i) => i.id === r.id));
+    return groups.some((g) => g.items.some((i) => i.id === r.id));
   }, [ groups ]);
-  const { route, go } = useHashRoute<ModuleId>({ ids: ALL_IDS, slugs: ALL_SLUGS, isAllowed });
+  const { route, go } = useHashRoute<ModuleId>({ ids: ROUTABLE_IDS, slugs: ALL_SLUGS, isAllowed });
   const navigate = useCallback((id: ModuleId) => go({ kind: "screen", id }), [ go ]);
   // As peças do shell só produzem ids vindos dos próprios grupos (ModuleId).
   const goShell = go as (r: Route) => void;
