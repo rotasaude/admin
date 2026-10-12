@@ -97,7 +97,7 @@ export function ProvisionCity({ onNavigate }: Props) {
               style={inputStyle}
             />
           </Field>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <Field label="UF" hint="duas letras maiúsculas" error={fieldErrors.includes("uf")}>
               <input
                 value={form.uf}

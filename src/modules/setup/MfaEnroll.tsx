@@ -89,7 +89,7 @@ export function MfaEnroll({ onDone }: { onDone?: () => void }) {
           </Section>
 
           <Section title="2. Anote seus recovery codes (mostrados UMA vez)">
-            <ul style={{
+            <ul className="form-2col" style={{
               margin: 0, padding: "10px 12px", listStyle: "none",
               background: "var(--bg)", border: "1px solid var(--rule2)", borderRadius: 8,
               fontFamily: "var(--font-mono)", fontSize: 12,

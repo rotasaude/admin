@@ -35,11 +35,11 @@ export function Overview({ onNavigate }: Props) {
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <PageHeader title="Visão geral" sub="overview" />
       <KpisRow />
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14 }}>
+      <div className="ov-split" style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14 }}>
         <IngestionTriagePanel />
         <QueuesSummaryPanel onNavigate={onNavigate} />
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 14 }}>
+      <div className="ov-split" style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 14 }}>
         <HealthSummaryPanel onNavigate={onNavigate} />
         <EventsSummaryPanel onNavigate={onNavigate} />
       </div>
@@ -80,7 +80,7 @@ function KpisRow() {
 
 function KpiGrid5({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
+    <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
       {children}
     </div>
   );
@@ -202,6 +202,7 @@ function QueuesSummaryPanel({ onNavigate }: { onNavigate?: (id: ModuleId) => voi
             )}
             {/* 3 KeyValues */}
             <div
+              className="ov-kv3"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(3, 1fr)",
@@ -335,6 +336,7 @@ function EventsSummaryPanel({ onNavigate }: { onNavigate?: (id: ModuleId) => voi
           {data.data.stream.slice(0, 5).map((e, i, arr) => (
             <div
               key={`${e.at}-${i}`}
+              className="ov-event"
               style={{
                 display: "grid",
                 gridTemplateColumns: "60px 1.1fr 1.4fr",
