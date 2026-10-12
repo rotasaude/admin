@@ -54,7 +54,7 @@ export function RegisterChannel() {
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <PageHeader title="Registrar canal" sub="setup" />
         <Card>
-          <div style={{ padding: "10px 12px", borderRadius: 8, background: "var(--up-bg)", color: "var(--up)", fontSize: 13 }}>
+          <div style={{ padding: "10px 12px", borderRadius: 8, background: "var(--ok-bg)", color: "var(--ok)", fontSize: 13 }}>
             Canal registrado. O token de acesso não fica visível depois de enviado.
           </div>
           <button type="button" onClick={() => setRegistered(false)} style={btnPrimary(false)}>

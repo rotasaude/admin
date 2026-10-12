@@ -120,7 +120,7 @@ export function MfaEnroll({ onDone }: { onDone?: () => void }) {
       )}
 
       {phase === "confirmed" && (
-        <div style={{ padding: "10px 12px", borderRadius: 8, background: "var(--up-bg)", color: "var(--up)", fontSize: 13 }}>
+        <div style={{ padding: "10px 12px", borderRadius: 8, background: "var(--ok-bg)", color: "var(--ok)", fontSize: 13 }}>
           ✓ MFA ativado. Da próxima vez que entrar, vamos pedir o código TOTP.
         </div>
       )}

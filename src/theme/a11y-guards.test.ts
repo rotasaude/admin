@@ -24,7 +24,14 @@ describe("foco visível", () => {
 });
 
 describe("texto legível fora do --ink4", () => {
-  it.each(["shell/TopBar.tsx", "shell/ContextStrip.tsx", "shell/LiveClock.tsx", "modules/Overview.tsx"])("%s", (file) => {
+  it.each(["shell/TopBar.tsx", "shell/ContextStrip.tsx", "shell/LiveClock.tsx", "modules/Overview.tsx", "shell/ContaMenu.tsx"])("%s", (file) => {
     expect(readFileSync(join(src, file), "utf8")).not.toMatch(/color: "var\(--ink4\)"/);
+  });
+});
+
+describe("papéis que existem no tema", () => {
+  it("nenhum --up, que não existe nos tokens (A-03)", () => {
+    const offenders = sources(src).filter((f) => /var\(--up(-bg)?\)/.test(readFileSync(f, "utf8")));
+    expect(offenders.map((f) => relative(src, f))).toEqual([]);
   });
 });

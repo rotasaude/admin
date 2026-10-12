@@ -60,7 +60,7 @@ export function ProvisionCity({ onNavigate }: Props) {
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <PageHeader title="Provisionar cidade" sub="setup" />
         <Card>
-          <div style={{ padding: "10px 12px", borderRadius: 8, background: "var(--up-bg)", color: "var(--up)", fontSize: 13 }}>
+          <div style={{ padding: "10px 12px", borderRadius: 8, background: "var(--ok-bg)", color: "var(--ok)", fontSize: 13 }}>
             Cidade registrada. O provisionamento roda em segundo plano; acompanhe o status em Cidades.
           </div>
           <button type="button" onClick={() => onNavigate?.("cities")} style={btnPrimary(false)}>

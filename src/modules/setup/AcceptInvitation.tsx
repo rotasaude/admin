@@ -46,7 +46,7 @@ export function AcceptInvitation({ token, onCancel }: { token: string; onCancel:
     return (
       <Center>
         <Card>
-          <div style={{ padding: "10px 12px", borderRadius: 8, background: "var(--up-bg)", color: "var(--up)", fontSize: 13 }}>
+          <div style={{ padding: "10px 12px", borderRadius: 8, background: "var(--ok-bg)", color: "var(--ok)", fontSize: 13 }}>
             ✓ Conta criada. Você já está autenticado.
           </div>
         </Card>
