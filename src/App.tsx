@@ -1,15 +1,25 @@
-// AppShell: estado de escopo (período + município) e módulo ativo.
+// AppShell: estado de escopo (período) e rota do shell.
 //
-// Plano 6 (fix wave, Important #1): o console (admin.*) não abre mais em
-// "Visão geral" (city-scoped, 404 em admin.*) — abre em "Cidades", o único
-// módulo que responde nesse host. useAlerts() (que consumia /queues e
-// /health, ambos city-scoped) também saiu daqui; ver AppHeader (prop
-// `alerts` agora opcional).
+// O console abre no Início (cards dos grupos; spec do subprojeto 2 do ciclo
+// de interface). As telas city-scoped (Visão geral, Filas, Saúde…) seguem no
+// switch, mas 404 em admin.* e não estão no menu nem são alcançáveis pelo
+// hash. useAlerts() (city-scoped) não roda aqui: o sino recebe listas vazias.
 
-import { useState } from "react";
-import { ScopeContext, type PeriodKey } from "./lib/scope";
-import { AppHeader } from "./shell/AppHeader";
-import type { ModuleId } from "./shell/modules";
+import { useCallback, useMemo, useState } from "react";
+import { ScopeContext, PERIOD_OPTIONS, useScope, type PeriodKey } from "./lib/scope";
+import { useAuth } from "./lib/auth";
+import { NAV_GROUPS, type ModuleId } from "./shell/modules";
+import { Shell } from "./shell/Shell";
+import { ContextStrip } from "./shell/ContextStrip";
+import { LiveClock } from "./shell/LiveClock";
+import { ContaMenu } from "./shell/ContaMenu";
+import { HomeCards, GroupCards } from "./shell/Cards";
+import { A11yPage } from "./shell/A11yPage";
+import { SegmentedControl } from "./shell/SegmentedControl";
+import { NotificationCenter } from "./shell/NotificationCenter";
+import { CATALOG } from "./shell/catalog";
+import { slugOf, useHashRoute, type Route } from "./shell/router";
+import type { ShellGroup } from "./shell/types";
 import { Overview } from "./modules/Overview";
 import { Ingestion } from "./modules/Ingestion";
 import { Conversations } from "./modules/Conversations";
@@ -28,36 +38,68 @@ import { UnknownChannels } from "./modules/setup/UnknownChannels";
 import { CityAnalytics } from "./modules/analytics/CityAnalytics";
 import { CityProduction } from "./modules/production/CityProduction";
 
+const OFF_MENU: ReadonlySet<string> = new Set([ "setup_mfa" ]);
+const ALL_IDS: ReadonlySet<string> = new Set([ ...NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id)), ...OFF_MENU ]);
+const ALL_SLUGS: ReadonlySet<string> = new Set(NAV_GROUPS.map((g) => slugOf(g.label)));
+
+// Mesmo filtro do AppHeader antigo: item com `visible` exige usuário.
+export function shellGroupsFor(user: { operator: boolean; memberships: { role: string }[] } | null): ShellGroup[] {
+  return NAV_GROUPS.map((g) => ({
+    label: g.label,
+    slug: slugOf(g.label),
+    items: g.items
+      .filter((it) => !it.visible || (user ? it.visible({ operator: user.operator, memberships: user.memberships }) : false))
+      .map((it) => ({ id: it.id, label: it.label }))
+  })).filter((g) => g.items.length > 0);
+}
+
 export function App() {
   const [ period, setPeriod ] = useState<PeriodKey>("7d");
-  const [ active, setActive ] = useState<ModuleId>("cities");
-
   // O console não tem noção de cidade ativa; o switch real de cidade é o
   // grant de 60s, não um estado de sessão.
   return (
-    <ScopeContext.Provider
-      value={{
-        period,
-        setPeriod
-      }}
-    >
-      <ShellInner active={active} setActive={setActive} />
+    <ScopeContext.Provider value={{ period, setPeriod }}>
+      <ShellInner />
     </ScopeContext.Provider>
   );
 }
 
-function ShellInner({ active, setActive }: { active: ModuleId; setActive: (id: ModuleId) => void }) {
+function ShellInner() {
+  const auth = useAuth();
+  const scope = useScope();
+  const groups = useMemo(() => shellGroupsFor(auth.user), [ auth.user ]);
+  const isAllowed = useCallback((r: Route<ModuleId>) => {
+    if (r.kind === "home" || r.kind === "a11y") return true;
+    if (r.kind === "group") return groups.some((g) => g.slug === r.slug);
+    return OFF_MENU.has(r.id) || groups.some((g) => g.items.some((i) => i.id === r.id));
+  }, [ groups ]);
+  const { route, go } = useHashRoute<ModuleId>({ ids: ALL_IDS, slugs: ALL_SLUGS, isAllowed });
+  const navigate = useCallback((id: ModuleId) => go({ kind: "screen", id }), [ go ]);
+  // As peças do shell só produzem ids vindos dos próprios grupos (ModuleId).
+  const goShell = go as (r: Route) => void;
+  const titleFor = (id: string) => NAV_GROUPS.flatMap((g) => g.items).find((i) => i.id === id)?.label ?? id;
+
+  let content;
+  if (route.kind === "home") content = <HomeCards groups={groups} catalog={CATALOG} go={goShell} />;
+  else if (route.kind === "a11y") content = <A11yPage contact="Fale com a equipe da plataforma." />;
+  else if (route.kind === "group") {
+    const group = groups.find((g) => g.slug === route.slug);
+    content = group ? <GroupCards group={group} catalog={CATALOG} go={goShell} /> : null;
+  } else content = renderModule(route.id, navigate);
+
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <AppHeader active={active} onSelect={setActive} />
-      <main style={{ padding: "22px 24px 48px", flex: 1, width: "100%" }}>
-        {renderModule(active, setActive)}
-      </main>
-    </div>
+    <Shell product="Admin Console" groups={groups} catalog={CATALOG} route={route} go={goShell} titleFor={titleFor}
+      context={<ContextStrip
+        left={<SegmentedControl options={PERIOD_OPTIONS} value={scope.period} onChange={scope.setPeriod} />}
+        right={<LiveClock />} />}
+      notifications={<NotificationCenter active={[]} limitations={[]} onNavigate={navigate} />}
+      account={auth.user ? <ContaMenu email={auth.user.email_address} onLogout={() => { void auth.logout(); }} /> : null}>
+      {content}
+    </Shell>
   );
 }
 
-function renderModule(id: ModuleId, onNavigate: (id: ModuleId) => void) {
+export function renderModule(id: ModuleId, onNavigate: (id: ModuleId) => void) {
   switch (id) {
     case "overview":       return <Overview onNavigate={onNavigate} />;
     case "ingestion":      return <Ingestion />;
