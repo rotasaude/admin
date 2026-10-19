@@ -231,4 +231,11 @@ export interface CityRecordFields {
 
 // GET /cities/:id (objeto solto, com os campos do item da lista) e o `city` de
 // PATCH /cities/:id/record_settings.
-export interface CityDetail extends Omit<CityRow, keyof CityRecordFields>, CityRecordFields {}
+// Identidade da cidade: nome oficial do órgão de saúde e brasão. A URL do brasão
+// é servida no host DA CIDADE, não no do console.
+export interface CityIdentityFields {
+  health_department_name?: string | null;
+  coat_of_arms_url?: string | null;
+}
+
+export interface CityDetail extends Omit<CityRow, keyof CityRecordFields>, CityRecordFields, CityIdentityFields {}

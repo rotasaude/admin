@@ -12,6 +12,7 @@ import { Panel } from "../../components/Panel";
 import { ErrorState } from "../../components/ErrorState";
 import { Skeleton } from "../../components/Skeleton";
 import { CityFeatures } from "./CityFeatures";
+import { CityIdentityForm } from "./CityIdentityForm";
 import { RecordSettingsForm } from "./RecordSettingsForm";
 
 interface Props {
@@ -40,6 +41,9 @@ export function CityRecord({ city, onBack }: Props) {
       {isError && <ErrorState message={(error as Error)?.message || "Erro"} onRetry={() => refetch()} />}
       {data && (
         <>
+          <Panel title="Identidade" sub="nome do órgão de saúde · brasão">
+            <CityIdentityForm city={data} onSaved={onSaved} />
+          </Panel>
           <Panel title="Prontuário e e-SUS" sub="modo · código IBGE · endereço do PEC">
             <RecordSettingsForm city={data} onSaved={onSaved} />
           </Panel>
