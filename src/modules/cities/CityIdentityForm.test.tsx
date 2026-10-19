@@ -93,4 +93,23 @@ describe("CityIdentityForm", () => {
     expect(updateMock).not.toHaveBeenCalled();
     expect(screen.getByRole("status").textContent).toBe("Nada mudou.");
   });
+
+  it("brasão salvo aparece como imagem pela rota do console, com o v do checksum", () => {
+    render(<CityIdentityForm city={{ ...CITY, coat_of_arms_url: "/city_identity/coat_of_arms?v=abc123" }} onSaved={vi.fn()} />);
+    const img = screen.getByRole("img", { name: /brasão salvo/i });
+    expect(img.getAttribute("src")).toBe("/cities/c1/coat_of_arms?v=abc123");
+    expect(screen.queryByText("Brasão cadastrado.")).toBeNull();
+  });
+
+  it("sem coat_of_arms_url não há imagem salva", () => {
+    render(<CityIdentityForm city={CITY} onSaved={vi.fn()} />);
+    expect(screen.queryByRole("img", { name: /brasão salvo/i })).toBeNull();
+  });
+
+  it("erro ao carregar a imagem salva cai no texto", () => {
+    render(<CityIdentityForm city={{ ...CITY, coat_of_arms_url: "/city_identity/coat_of_arms?v=abc123" }} onSaved={vi.fn()} />);
+    fireEvent.error(screen.getByRole("img", { name: /brasão salvo/i }));
+    expect(screen.queryByRole("img", { name: /brasão salvo/i })).toBeNull();
+    expect(screen.getByText("Brasão cadastrado.")).toBeTruthy();
+  });
 });

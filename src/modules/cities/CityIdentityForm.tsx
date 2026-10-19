@@ -1,11 +1,19 @@
 // Identidade da cidade (nome oficial do órgão de saúde + brasão), mostrada no
 // login do dashboard e no app do cidadão. A prévia é do arquivo escolhido
-// (blob local); o brasão já salvo é servido no host da cidade, que o console
-// não conhece, então aqui só se informa que existe.
+// (blob local); o brasão já salvo vem da rota do console
+// GET /cities/:id/coat_of_arms (cookie do operador), com o ?v= do checksum
+// tirado de coat_of_arms_url para quebrar o cache quando o brasão troca.
 
 import { useEffect, useState, type FormEvent } from "react";
 import type { CityDetail } from "../../lib/types";
 import { checkCoatOfArmsFile, describeIdentityError, updateCityIdentity, type CityIdentityPatch } from "../../lib/cityIdentity";
+
+function savedCoatSrc(cityId: string, url: string | null | undefined): string | null {
+  if (!url) return null;
+  const v = new URLSearchParams(url.split("?")[1] ?? "").get("v");
+  const base = `/cities/${encodeURIComponent(cityId)}/coat_of_arms`;
+  return v ? `${base}?v=${encodeURIComponent(v)}` : base;
+}
 
 interface Props {
   city: CityDetail;
@@ -18,6 +26,7 @@ export function CityIdentityForm({ city, onSaved }: Props) {
   const [ file, setFile ] = useState<File | null>(null);
   const [ preview, setPreview ] = useState<string | null>(null);
   const [ remove, setRemove ] = useState(false);
+  const [ savedBroken, setSavedBroken ] = useState(false);
   const [ busy, setBusy ] = useState(false);
   const [ error, setError ] = useState<string | null>(null);
   const [ notice, setNotice ] = useState<string | null>(null);
@@ -59,6 +68,7 @@ export function CityIdentityForm({ city, onSaved }: Props) {
     try {
       const updated = await updateCityIdentity(city.id, patch);
       setBase(updated);
+      setSavedBroken(false);
       setName(updated.health_department_name ?? "");
       setFile(null);
       setRemove(false);
@@ -72,6 +82,7 @@ export function CityIdentityForm({ city, onSaved }: Props) {
   }
 
   const hasSaved = base.coat_of_arms_url != null && !remove;
+  const savedSrc = savedCoatSrc(base.id, base.coat_of_arms_url);
   const hasCoat = file !== null || hasSaved;
 
   return (
@@ -99,7 +110,15 @@ export function CityIdentityForm({ city, onSaved }: Props) {
           style={{ maxHeight: 96, maxWidth: 96, objectFit: "contain", background: "var(--panel)", border: "1px solid var(--rule2)", borderRadius: 8, padding: 8 }}
         />
       )}
-      {!preview && hasSaved && <p style={{ fontSize: 12, color: "var(--ink3)", margin: 0 }}>Brasão cadastrado.</p>}
+      {!preview && hasSaved && savedSrc && !savedBroken && (
+        <img
+          src={savedSrc}
+          alt="Brasão salvo"
+          onError={() => setSavedBroken(true)}
+          style={{ maxHeight: 96, maxWidth: 96, objectFit: "contain", background: "var(--panel)", border: "1px solid var(--rule2)", borderRadius: 8, padding: 8 }}
+        />
+      )}
+      {!preview && hasSaved && savedBroken && <p style={{ fontSize: 12, color: "var(--ink3)", margin: 0 }}>Brasão cadastrado.</p>}
       {hasCoat && (
         <div>
           <button type="button" onClick={removeCoat} disabled={busy} style={btnGhost}>Remover brasão</button>
