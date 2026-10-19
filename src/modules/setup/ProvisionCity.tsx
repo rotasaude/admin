@@ -5,12 +5,13 @@
 // promete cidade pronta nem mostra convite — o convite do primeiro admin vai
 // por e-mail e o token nunca volta para o console (contrato do Plano 4).
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createCity, ApiError } from "../../lib/api";
 import {
   DEFAULT_TIME_ZONE, TIME_ZONES, suggestedTimeZone, validateProvisionForm, type ProvisionCityPayload
 } from "../../lib/provisioning";
+import { checkCoatOfArmsFile, describeIdentityError, updateCityIdentity, type CityIdentityPatch } from "../../lib/cityIdentity";
 import { PageHeader } from "../../components/PageHeader";
 import type { ModuleId } from "../../shell/modules";
 
@@ -31,6 +32,53 @@ export function ProvisionCity({ onNavigate }: Props) {
   const [ createdId, setCreatedId ] = useState<string | null>(null);
   // Enquanto o operador não escolhe, o fuso acompanha a UF digitada.
   const [ zoneTouched, setZoneTouched ] = useState(false);
+  // Identidade opcional (órgão + brasão): enviada logo após a cidade existir.
+  const [ orgName, setOrgName ] = useState("");
+  const [ coat, setCoat ] = useState<File | null>(null);
+  const [ coatPreview, setCoatPreview ] = useState<string | null>(null);
+  const [ coatError, setCoatError ] = useState<string | null>(null);
+  // Aviso só em estado local (spec §6): não persiste.
+  const [ identityWarning, setIdentityWarning ] = useState<string | null>(null);
+  const [ retrying, setRetrying ] = useState(false);
+
+  useEffect(() => {
+    if (!coat) { setCoatPreview(null); return; }
+    const url = URL.createObjectURL(coat);
+    setCoatPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [ coat ]);
+
+  async function chooseCoat(f: File | undefined) {
+    if (!f) return;
+    const problem = await checkCoatOfArmsFile(f);
+    setCoatError(problem);
+    setCoat(problem ? null : f);
+  }
+
+  function identityPatch(): CityIdentityPatch {
+    const patch: CityIdentityPatch = {};
+    if (orgName.trim() !== "") patch.healthDepartmentName = orgName.trim();
+    if (coat) patch.coatOfArms = coat;
+    return patch;
+  }
+
+  async function sendIdentity(id: string) {
+    const patch = identityPatch();
+    if (Object.keys(patch).length === 0) return;
+    try {
+      await updateCityIdentity(id, patch);
+      setIdentityWarning(null);
+    } catch (err) {
+      setIdentityWarning(describeIdentityError(err));
+    }
+  }
+
+  async function retryIdentity() {
+    if (!createdId) return;
+    setRetrying(true);
+    await sendIdentity(createdId);
+    setRetrying(false);
+  }
 
   function set<K extends keyof ProvisionCityPayload>(key: K, value: string) {
     setForm((f) => ({ ...f, [ key ]: value }));
@@ -40,12 +88,13 @@ export function ProvisionCity({ onNavigate }: Props) {
     e.preventDefault();
     const errors = validateProvisionForm(form);
     setFieldErrors(errors);
-    if (errors.length > 0) return;
+    if (errors.length > 0 || coatError) return;
 
     setApiError(null);
     setBusy(true);
     try {
       const res = await createCity(form);
+      await sendIdentity(res.id);
       setCreatedId(res.id);
       await qc.invalidateQueries({ queryKey: [ "cities" ] });
     } catch (err) {
@@ -63,6 +112,17 @@ export function ProvisionCity({ onNavigate }: Props) {
           <div style={{ padding: "10px 12px", borderRadius: 8, background: "var(--ok-bg)", color: "var(--ok)", fontSize: 13 }}>
             Cidade registrada. O provisionamento roda em segundo plano; acompanhe o status em Cidades.
           </div>
+          {identityWarning && (
+            <div role="alert" style={{ padding: "10px 12px", borderRadius: 8, background: "var(--down-bg)", color: "var(--down)", fontSize: 13, display: "flex", flexDirection: "column", gap: 8 }}>
+              <span>Cidade criada, mas a identidade não foi salva.</span>
+              <span style={{ fontSize: 12 }}>{identityWarning}</span>
+              <div>
+                <button type="button" onClick={() => void retryIdentity()} disabled={retrying} style={btnGhost}>
+                  {retrying ? "Enviando…" : "Tentar de novo"}
+                </button>
+              </div>
+            </div>
+          )}
           <button type="button" onClick={() => onNavigate?.("cities")} style={btnPrimary(false)}>
             Ir para Cidades
           </button>
@@ -150,6 +210,29 @@ export function ProvisionCity({ onNavigate }: Props) {
             />
           </Field>
 
+          <Field label="Nome oficial do órgão de saúde" hint="opcional, até 120 caracteres">
+            <input value={orgName} onChange={(e) => setOrgName(e.target.value)} maxLength={120} style={inputStyle} />
+          </Field>
+          <Field label="Brasão" hint="opcional, PNG ou WebP, até 256 KB, 128 a 1024 px" error={coatError !== null}>
+            <input
+              type="file"
+              accept="image/png,image/webp"
+              onChange={(e) => { void chooseCoat(e.target.files?.[0]); e.target.value = ""; }}
+              style={inputStyle}
+            />
+          </Field>
+          {coatError && <div role="alert" style={{ fontSize: 12, color: "var(--down)" }}>{coatError}</div>}
+          {coatPreview && (
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <img
+                src={coatPreview}
+                alt="Prévia do brasão"
+                style={{ maxHeight: 96, maxWidth: 96, objectFit: "contain", background: "var(--panel)", border: "1px solid var(--rule2)", borderRadius: 8, padding: 8 }}
+              />
+              <button type="button" onClick={() => setCoat(null)} style={btnGhost}>Remover brasão</button>
+            </div>
+          )}
+
           {fieldErrors.length > 0 && (
             <div role="alert" style={{ padding: "8px 10px", borderRadius: 6, background: "var(--down-bg)", color: "var(--down)", fontSize: 12 }}>
               Campos inválidos: {fieldErrors.join(", ")}
@@ -205,6 +288,11 @@ const inputStyle: React.CSSProperties = {
   padding: "9px 10px", fontSize: 13, fontFamily: "var(--font-sans)",
   color: "var(--ink)", background: "var(--panel)",
   border: "1px solid var(--rule2)", borderRadius: 8
+};
+
+const btnGhost: React.CSSProperties = {
+  padding: "8px 12px", borderRadius: 8, border: "1px solid var(--rule2)",
+  background: "var(--panel)", color: "var(--ink)", fontSize: 13, cursor: "pointer"
 };
 
 function btnPrimary(disabled: boolean): React.CSSProperties {
